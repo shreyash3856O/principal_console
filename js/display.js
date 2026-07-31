@@ -114,9 +114,9 @@ function renderNoticeBoard(data) {
     slideshowContainer.innerHTML = `
       <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; text-align:center; padding:2rem;">
         <div>
-          <img src="assets/crest.svg" style="width:80px; height:80px; opacity:0.5; margin-bottom:1rem;" />
-          <h2 style="font-size:1.8rem; color:var(--text-main); font-weight:700;">${titleText || 'Official Notice'}</h2>
-          <p style="font-size:1.1rem; color:var(--text-muted); margin-top:0.5rem; max-width:600px;">${bodyText}</p>
+          <img src="assets/logo.png" style="width:100px; height:100px; object-fit:contain; opacity:0.85; margin-bottom:1rem; filter: drop-shadow(0 4px 12px rgba(153, 0, 0, 0.2));" />
+          <h2 style="font-size:2rem; color:var(--primary-accent); font-weight:800;">${titleText || 'Official Notice'}</h2>
+          <p style="font-size:1.2rem; color:var(--text-main); margin-top:0.75rem; max-width:700px; line-height:1.6;">${bodyText}</p>
         </div>
       </div>
     `;

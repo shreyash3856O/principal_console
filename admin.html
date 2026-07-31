@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Principal's Admin Console — Live Notice Board</title>
+  <title>Shree L.R Tiwari College of Engineering — Admin Console</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
   <link rel="stylesheet" href="css/common.css" />
   <link rel="stylesheet" href="css/admin.css" />
   <link rel="stylesheet" href="css/display.css" />
@@ -13,8 +14,9 @@
   <!-- Passcode Auth Modal Overlay -->
   <div id="passcodeModal" class="modal-overlay">
     <div class="modal-card glass-panel">
-      <img src="assets/crest.svg" alt="School Crest" style="width: 64px; height: 64px;" />
+      <img src="assets/logo.png" alt="Shree L.R Tiwari College Logo" style="width: 72px; height: 72px; object-fit: contain;" />
       <div>
+        <div style="font-size:0.75rem; font-weight:800; color:var(--primary-accent); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:0.25rem;">Shree L.R Tiwari College of Engineering</div>
         <h2 style="font-size: 1.4rem;">Principal's Console</h2>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
           Enter security passcode to control the Live Notice Board.
@@ -37,24 +39,24 @@
         Unlock Console
       </button>
 
-      <p style="font-size: 0.75rem; color: var(--text-dim);">
-        Default passcode: <strong style="color: var(--primary-accent);">1234</strong> (Can be changed inside settings)
-      </p>
     </div>
   </div>
 
   <!-- Header -->
   <header class="admin-header">
     <div class="brand">
-      <img src="assets/crest.svg" alt="School Crest" class="brand-crest" />
+      <img src="assets/logo.png" alt="Shree L.R Tiwari College Logo" class="brand-crest" />
       <div class="brand-titles">
         <h1>Principal's Admin Console</h1>
-        <p>Live TV Board Management & Realtime Control</p>
+        <p>Shree L.R Tiwari College of Engineering — Realtime Control</p>
       </div>
     </div>
 
     <div class="header-actions">
       <span id="syncStatusBadge" class="badge badge-demo">Connecting...</span>
+      <button id="themeToggleBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;" title="Toggle Light / Dark Mode">
+        🌙 Dark Mode
+      </button>
       <a href="display.html" target="_blank" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
         📺 Open Smart TV Display
       </a>
@@ -138,13 +140,13 @@
           <!-- Mini Glassy Header -->
           <div class="display-header" style="padding: 0.6rem 1rem;">
             <div class="display-brand">
-              <img src="assets/crest.svg" class="display-crest" style="width: 28px; height: 28px;" />
+              <img src="assets/logo.png" class="display-crest" style="width: 28px; height: 28px; object-fit: contain;" />
               <div>
-                <div class="display-institution" style="font-size: 0.6rem;">OFFICE OF THE PRINCIPAL</div>
-                <div class="display-subtitle" style="font-size: 0.8rem;">LIVE NOTICE BOARD</div>
+                <div class="display-institution" style="font-size: 0.55rem;">SHREE L.R TIWARI COLLEGE OF ENGINEERING</div>
+                <div class="display-subtitle" style="font-size: 0.75rem;">LIVE NOTICE BOARD</div>
               </div>
             </div>
-            <div style="font-size: 0.7rem; color: var(--text-muted);">LIVE TV VIEW</div>
+            <div style="font-size: 0.7rem; color: #ffe4e6;">LIVE TV VIEW</div>
           </div>
 
           <!-- Mini Content Area -->
@@ -152,7 +154,7 @@
 
             <!-- Empty State View -->
             <div id="prevEmptyState" class="empty-state" style="padding: 1.5rem 1rem; border: none; display: flex;">
-              <img src="assets/crest.svg" class="empty-crest" style="width: 44px; height: 44px;" />
+              <img src="assets/logo.png" class="empty-crest" style="width: 48px; height: 48px; object-fit: contain;" />
               <div class="empty-title" style="font-size: 1.1rem;">No Active Announcement</div>
               <div class="empty-subtitle" style="font-size: 0.75rem;">Upload images or type a message to preview.</div>
             </div>
@@ -163,9 +165,9 @@
                 <img id="prevImageBgBlur" src="" class="slideshow-bg-blur" style="display: none;" />
                 <img id="prevImage" src="" class="slideshow-image" style="display: none;" />
                 <div id="prevTextOnlyFallback" style="display: none; text-align: center; padding: 1.5rem;">
-                  <img src="assets/crest.svg" style="width: 50px; height: 50px; opacity: 0.5; margin-bottom: 0.5rem;" />
-                  <div id="prevTitleOnly" style="font-size: 1.2rem; font-weight: 700; color: #fff;"></div>
-                  <div id="prevBodyOnly" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;"></div>
+                  <img src="assets/logo.png" style="width: 50px; height: 50px; opacity: 0.85; object-fit: contain; margin-bottom: 0.5rem;" />
+                  <div id="prevTitleOnly" style="font-size: 1.2rem; font-weight: 700; color: var(--primary-accent);"></div>
+                  <div id="prevBodyOnly" style="font-size: 0.85rem; color: var(--text-main); margin-top: 0.25rem;"></div>
                 </div>
               </div>
             </div>

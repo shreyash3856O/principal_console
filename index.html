@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Principal's Live Notice Board — Hub</title>
+  <title>Shree L.R Tiwari College of Engineering — Live Notice Board</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
   <link rel="stylesheet" href="css/common.css" />
   <style>
     .portal-body {
@@ -13,13 +14,14 @@
       align-items: center;
       justify-content: center;
       padding: 2rem;
+      background-color: var(--bg-dark);
       background-image: 
-        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.12) 0px, transparent 50%);
+        radial-gradient(at 0% 0%, rgba(153, 0, 0, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(220, 38, 38, 0.08) 0px, transparent 50%);
     }
 
     .portal-card {
-      max-width: 800px;
+      max-width: 840px;
       width: 100%;
       padding: 3rem 2.5rem;
       text-align: center;
@@ -29,15 +31,27 @@
       gap: 2rem;
     }
 
+    .institution-name {
+      font-family: var(--font-heading);
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--primary-accent);
+      letter-spacing: 0.12em;
+      margin-bottom: 0.3rem;
+    }
+
     .portal-title {
       font-size: 2.2rem;
-      margin-top: 1rem;
+      color: var(--text-main);
+      line-height: 1.2;
     }
 
     .portal-subtitle {
       color: var(--text-muted);
       font-size: 1.05rem;
-      max-width: 540px;
+      max-width: 580px;
+      margin-top: 0.5rem;
     }
 
     .grid-options {
@@ -54,8 +68,8 @@
     }
 
     .option-card {
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
       padding: 2rem 1.5rem;
       text-align: left;
@@ -66,13 +80,14 @@
       flex-direction: column;
       justify-content: space-between;
       gap: 1rem;
+      box-shadow: 0 10px 25px rgba(153, 0, 0, 0.06);
     }
 
     .option-card:hover {
       transform: translateY(-5px);
       border-color: var(--primary-accent);
-      background: rgba(30, 41, 59, 0.8);
-      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+      background: var(--bg-card-hover);
+      box-shadow: 0 15px 35px rgba(153, 0, 0, 0.15);
     }
 
     .option-icon {
@@ -81,11 +96,11 @@
 
     .option-h {
       font-size: 1.3rem;
-      color: #fff;
+      color: var(--text-main);
     }
 
     .option-p {
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       color: var(--text-muted);
     }
   </style>
@@ -93,9 +108,10 @@
 <body class="portal-body">
 
   <main class="portal-card glass-panel">
-    <img src="assets/crest.svg" alt="School Emblem" style="width: 80px; height: 80px; filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.4));" />
+    <img src="assets/logo.png" alt="Shree L.R Tiwari College Logo" style="width: 110px; height: 110px; object-fit: contain; filter: drop-shadow(0 6px 16px rgba(153, 0, 0, 0.25));" />
     
     <div>
+      <div class="institution-name">Shree L.R Tiwari College of Engineering</div>
       <h1 class="portal-title">Principal's Live Notice Board</h1>
       <p class="portal-subtitle">
         Instant real-time announcement system connecting the Principal's device directly to the Smart TV Board outside the cabin.
@@ -110,7 +126,7 @@
           <div class="option-icon">⚙️</div>
           <h2 class="option-h" style="margin-top: 0.5rem;">Admin Console</h2>
           <p class="option-p" style="margin-top: 0.5rem;">
-            Post title, text message, and image slideshows. Includes passcode protection and live side-by-side preview.
+            Post title, text message, and image slideshows. Includes passcode protection, dark mode, and live side-by-side preview.
           </p>
         </div>
         <div style="font-weight: 700; color: var(--primary-accent); font-size: 0.9rem;">
@@ -124,7 +140,7 @@
           <div class="option-icon">📺</div>
           <h2 class="option-h" style="margin-top: 0.5rem;">Smart TV Display</h2>
           <p class="option-p" style="margin-top: 0.5rem;">
-            Fullscreen smart board interface with auto image rotation, live clock/date, and zero-delay push updates.
+            Fullscreen smart board interface with auto image rotation, live clock/date, news ticker, and zero-delay push updates.
           </p>
         </div>
         <div style="font-weight: 700; color: var(--primary-accent); font-size: 0.9rem;">
@@ -134,9 +150,6 @@
 
     </div>
 
-    <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 1rem;">
-      Default Admin Passcode: <strong style="color: var(--primary-accent);">1234</strong> • True Realtime Firebase Firestore Engine
-    </div>
   </main>
 
 </body>

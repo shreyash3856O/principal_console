@@ -13,11 +13,48 @@ document.addEventListener('DOMContentLoaded', () => {
   const { isCloudActive } = initStore();
   updateSyncBadge(isCloudActive);
 
+  initTheme();
+  setupThemeToggle();
   setupPasscodeGate();
   setupFormListeners();
   setupDropzone();
   setupRealtimePreview();
 });
+
+/**
+ * Dark Mode Theme Initialization & Toggle
+ * Persists preference in localStorage. Only applies to Admin Console.
+ */
+function initTheme() {
+  const savedTheme = localStorage.getItem('admin_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeButtonText(savedTheme);
+}
+
+function setupThemeToggle() {
+  const toggleBtn = document.getElementById('themeToggleBtn');
+  if (!toggleBtn) return;
+
+  toggleBtn.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('admin_theme', newTheme);
+    updateThemeButtonText(newTheme);
+    showToast(`Switched to ${newTheme === 'dark' ? 'Dark' : 'Light'} Mode`, 'info');
+  });
+}
+
+function updateThemeButtonText(theme) {
+  const toggleBtn = document.getElementById('themeToggleBtn');
+  if (!toggleBtn) return;
+  if (theme === 'dark') {
+    toggleBtn.innerHTML = '☀️ Light Mode';
+  } else {
+    toggleBtn.innerHTML = '🌙 Dark Mode';
+  }
+}
 
 /**
  * Passcode Auth Gate Setup

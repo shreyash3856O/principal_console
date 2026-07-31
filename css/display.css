@@ -6,27 +6,26 @@
   height: 100vh;
   overflow: hidden;
   user-select: none;
-  background: var(--bg-dark);
+  background-color: var(--bg-dark);
   background-image: 
-    radial-gradient(at 15% 15%, rgba(30, 58, 138, 0.25) 0px, transparent 60%),
-    radial-gradient(at 85% 85%, rgba(180, 83, 9, 0.15) 0px, transparent 60%);
+    radial-gradient(at 15% 15%, rgba(153, 0, 0, 0.1) 0px, transparent 60%),
+    radial-gradient(at 85% 85%, rgba(220, 38, 38, 0.06) 0px, transparent 60%);
   display: flex;
   flex-direction: column;
   color: var(--text-main);
   position: relative;
 }
 
-/* Glassy Header Bar */
+/* Glassy Executive Header Bar */
 .display-header {
   padding: 1rem 2.5rem;
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #7a0000, #990000, #b91c1c);
+  color: #ffffff;
+  border-bottom: 3px solid #5c0000;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 30px rgba(122, 0, 0, 0.3);
   z-index: 50;
   transition: all var(--transition-normal);
 }
@@ -35,11 +34,9 @@
 :fullscreen .display-header,
 :-webkit-full-screen .display-header,
 .is-fullscreen .display-header {
-  background: rgba(7, 13, 25, 0.25);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(135deg, #660000, #800000, #a81c1c);
+  border-bottom: 3px solid #4a0000;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
 }
 
 .display-brand {
@@ -49,24 +46,25 @@
 }
 
 .display-crest {
-  width: 46px;
-  height: 46px;
-  filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.5));
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.3));
 }
 
 .display-institution {
   font-family: var(--font-heading);
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-size: 0.85rem;
+  font-weight: 800;
   letter-spacing: 0.15em;
-  color: var(--primary-accent);
+  color: #fecdd3;
   text-transform: uppercase;
 }
 
 .display-subtitle {
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 800;
-  color: var(--text-main);
+  color: #ffffff;
   letter-spacing: -0.01em;
 }
 
@@ -86,28 +84,29 @@
 
 .clock-time {
   font-family: var(--font-heading);
-  font-size: 2rem;
+  font-size: 2.1rem;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.02em;
   color: #ffffff;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
 }
 
 .clock-date {
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: #ffe4e6;
   font-weight: 500;
   margin-top: 0.2rem;
 }
 
 .fullscreen-btn {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: var(--text-main);
-  padding: 0.55rem 1rem;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  padding: 0.55rem 1.1rem;
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -116,8 +115,8 @@
 }
 
 .fullscreen-btn:hover {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: var(--primary-accent);
+  background: rgba(255, 255, 255, 0.32);
+  border-color: #ffffff;
 }
 
 /* Main Display Content Area (Full Landscape Image Canvas) */
@@ -307,34 +306,37 @@
   justify-content: center;
   text-align: center;
   padding: 4rem 2rem;
-  background: rgba(15, 23, 42, 0.5);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
-  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border: 2px dashed var(--border-color);
   border-radius: var(--radius-lg);
+  box-shadow: 0 15px 35px rgba(153, 0, 0, 0.08);
   margin: auto 0;
 }
 
 .empty-crest {
-  width: 100px;
-  height: 100px;
-  opacity: 0.4;
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  opacity: 0.9;
+  filter: drop-shadow(0 6px 16px rgba(153, 0, 0, 0.2));
   margin-bottom: 1.5rem;
 }
 
 .empty-title {
   font-size: 2.2rem;
-  color: var(--text-muted);
-  font-weight: 700;
+  color: var(--primary-accent);
+  font-weight: 800;
   margin-bottom: 0.5rem;
 }
 
 .empty-subtitle {
   font-size: 1.1rem;
-  color: var(--text-dim);
-  max-width: 500px;
+  color: var(--text-muted);
+  max-width: 540px;
 }
 
-/* Status Indicator Footer */
+/* Status Indicator Footer Header Right Overlay */
 .display-footer-status {
   position: absolute;
   top: 1.25rem;
@@ -344,9 +346,11 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.75rem;
-  color: var(--text-dim);
-  background: rgba(15, 23, 42, 0.7);
-  padding: 0.3rem 0.75rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0.35rem 0.85rem;
   border-radius: var(--radius-full);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
 }
