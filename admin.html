@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Principal's Admin Console — Live Notice Board</title>
+  <link rel="stylesheet" href="css/common.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <link rel="stylesheet" href="css/display.css" />
+</head>
+<body class="admin-body">
+
+  <!-- Passcode Auth Modal Overlay -->
+  <div id="passcodeModal" class="modal-overlay">
+    <div class="modal-card glass-panel">
+      <img src="assets/crest.svg" alt="School Crest" style="width: 64px; height: 64px;" />
+      <div>
+        <h2 style="font-size: 1.4rem;">Principal's Console</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+          Enter security passcode to control the Live Notice Board.
+        </p>
+      </div>
+
+      <div style="width: 100%;">
+        <input 
+          type="password" 
+          id="passcodeInput" 
+          class="form-input passcode-input" 
+          placeholder="••••" 
+          maxlength="8" 
+          autocomplete="off"
+        />
+        <div id="passcodeError" style="color: var(--status-error); font-size: 0.8rem; margin-top: 0.5rem; display: none;"></div>
+      </div>
+
+      <button id="unlockBtn" class="btn btn-primary" style="width: 100%;">
+        Unlock Console
+      </button>
+
+      <p style="font-size: 0.75rem; color: var(--text-dim);">
+        Default passcode: <strong style="color: var(--primary-accent);">1234</strong> (Can be changed inside settings)
+      </p>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="admin-header">
+    <div class="brand">
+      <img src="assets/crest.svg" alt="School Crest" class="brand-crest" />
+      <div class="brand-titles">
+        <h1>Principal's Admin Console</h1>
+        <p>Live TV Board Management & Realtime Control</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <span id="syncStatusBadge" class="badge badge-demo">Connecting...</span>
+      <a href="display.html" target="_blank" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+        📺 Open Smart TV Display
+      </a>
+      <button id="changePasscodeBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;" title="Change Passcode">
+        🔑 Passcode
+      </button>
+      <button id="lockConsoleBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;" title="Lock Console">
+        🔒 Lock
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="admin-container">
+
+    <!-- Left Column: Notice Creation Form -->
+    <section class="glass-panel form-card">
+      <div class="card-title">
+        <h2>📢 Post Announcement</h2>
+        <span style="font-size: 0.8rem; color: var(--text-dim);">Real-time Sync Active</span>
+      </div>
+
+      <!-- Notice Title -->
+      <div class="form-group">
+        <label for="noticeTitle" class="form-label">Notice Title (Optional if only uploading images)</label>
+        <input 
+          type="text" 
+          id="noticeTitle" 
+          class="form-input" 
+          placeholder="e.g. Annual Sports Day & Morning Assembly Address" 
+          maxlength="120"
+        />
+      </div>
+
+      <!-- Notice Message -->
+      <div class="form-group">
+        <label for="noticeMessage" class="form-label">Announcement Message (Appears on News Ticker Banner)</label>
+        <textarea 
+          id="noticeMessage" 
+          class="form-textarea" 
+          placeholder="Enter message to scroll across news banner on TV display..."
+        ></textarea>
+      </div>
+
+      <!-- Image Drag and Drop Area -->
+      <div class="form-group">
+        <label class="form-label">Attached Photos / Slideshow Images</label>
+        <div id="imageDropzone" class="dropzone">
+          <div class="dropzone-icon">📷</div>
+          <div class="dropzone-text"><strong>Drag & Drop images here</strong> or click to browse</div>
+          <div class="dropzone-hint">Supports multiple images (JPG, PNG, WebP). Displays in Full Landscape Mode.</div>
+          <input type="file" id="fileInput" multiple accept="image/*" style="display: none;" />
+        </div>
+
+        <!-- Thumbnail Previews Container -->
+        <div id="previewsGrid" class="previews-grid"></div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button id="postBtn" class="btn btn-primary">
+          🚀 Post to Board Live
+        </button>
+        <button id="clearBtn" class="btn btn-danger">
+          🧹 Clear Board
+        </button>
+      </div>
+    </section>
+
+    <!-- Right Column: Live Board Preview -->
+    <section class="glass-panel preview-card">
+      <div class="card-title">
+        <h2>👁️ Live Board Preview</h2>
+        <span style="font-size: 0.8rem; color: var(--primary-accent);">Updates as you type</span>
+      </div>
+
+      <!-- Embedded Mini Display Screen Mirror -->
+      <div class="preview-screen-wrapper">
+        <div class="display-screen" style="transform: scale(1); transform-origin: top left; width: 100%; height: 100%; position: relative;">
+          
+          <!-- Mini Glassy Header -->
+          <div class="display-header" style="padding: 0.6rem 1rem;">
+            <div class="display-brand">
+              <img src="assets/crest.svg" class="display-crest" style="width: 28px; height: 28px;" />
+              <div>
+                <div class="display-institution" style="font-size: 0.6rem;">OFFICE OF THE PRINCIPAL</div>
+                <div class="display-subtitle" style="font-size: 0.8rem;">LIVE NOTICE BOARD</div>
+              </div>
+            </div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);">LIVE TV VIEW</div>
+          </div>
+
+          <!-- Mini Content Area -->
+          <div class="display-content" style="padding: 0.75rem;">
+
+            <!-- Empty State View -->
+            <div id="prevEmptyState" class="empty-state" style="padding: 1.5rem 1rem; border: none; display: flex;">
+              <img src="assets/crest.svg" class="empty-crest" style="width: 44px; height: 44px;" />
+              <div class="empty-title" style="font-size: 1.1rem;">No Active Announcement</div>
+              <div class="empty-subtitle" style="font-size: 0.75rem;">Upload images or type a message to preview.</div>
+            </div>
+
+            <!-- Active Content View (Full Landscape Canvas) -->
+            <div id="prevActiveContent" style="display: none; width: 100%; height: 100%;">
+              <div id="prevImageContainer" class="slideshow-card" style="width: 100%; height: 100%;">
+                <img id="prevImageBgBlur" src="" class="slideshow-bg-blur" style="display: none;" />
+                <img id="prevImage" src="" class="slideshow-image" style="display: none;" />
+                <div id="prevTextOnlyFallback" style="display: none; text-align: center; padding: 1.5rem;">
+                  <img src="assets/crest.svg" style="width: 50px; height: 50px; opacity: 0.5; margin-bottom: 0.5rem;" />
+                  <div id="prevTitleOnly" style="font-size: 1.2rem; font-weight: 700; color: #fff;"></div>
+                  <div id="prevBodyOnly" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;"></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Mini News Ticker Preview Banner -->
+          <div id="prevTickerBar" class="ticker-bar" style="display: none; height: 36px;">
+            <div class="ticker-badge" style="font-size: 0.7rem; padding: 0 0.75rem;">
+              <span class="ticker-dot" style="width: 6px; height: 6px;"></span>
+              LIVE NOTICE
+            </div>
+            <div class="ticker-wrapper">
+              <div id="prevTickerTrack" class="ticker-track" style="font-size: 0.85rem;">
+                <!-- Scrolling text preview -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Notice Board — Office of the Principal</title>
+  <link rel="stylesheet" href="css/common.css" />
+  <link rel="stylesheet" href="css/display.css" />
+</head>
+<body>
+
+  <div id="displayScreen" class="display-screen">
+
+    <!-- Top Glassy Header Bar -->
+    <header id="displayHeader" class="display-header">
+      <div class="display-brand">
+        <img src="assets/crest.svg" alt="School Emblem" class="display-crest" />
+        <div>
+          <div class="display-institution">Office of the Principal</div>
+          <div class="display-subtitle">LIVE NOTICE BOARD</div>
+        </div>
+      </div>
+
+      <div class="display-header-right">
+        <!-- Live Clock & Date -->
+        <div class="clock-box">
+          <div id="clockTime" class="clock-time">--:--:-- --</div>
+          <div id="clockDate" class="clock-date">Loading date...</div>
+        </div>
+
+        <!-- True Browser Fullscreen API Button -->
+        <button id="fullscreenBtn" class="fullscreen-btn" title="Toggle browser full screen mode for TV display">
+          <span>⤢</span> Fullscreen
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Display Body (Landscape Slideshow Area) -->
+    <main id="displayContent" class="display-content">
+
+      <!-- Calm Empty State View -->
+      <div id="emptyNoticeView" class="empty-state">
+        <img src="assets/crest.svg" alt="School Crest" class="empty-crest" />
+        <h2 class="empty-title">No Active Announcements</h2>
+        <p class="empty-subtitle">
+          There are no notices posted at this time. Updates from the Principal's Office will appear here automatically.
+        </p>
+      </div>
+
+      <!-- Active Announcement View (Landscape Image Slideshow) -->
+      <div id="activeNoticeView" style="display: none; width: 100%; height: 100%;">
+        
+        <!-- Landscape Image Slideshow Container -->
+        <aside id="slideshowCard" class="slideshow-card">
+          <div id="slideshowContainer" class="slideshow-container"></div>
+          <div id="slideshowDots" class="slideshow-dots"></div>
+        </aside>
+
+      </div>
+
+    </main>
+
+    <!-- News Channel Scrolling Ticker Bar (Only visible if textual notice is given) -->
+    <div id="tickerBar" class="ticker-bar" style="display: none;">
+      <div class="ticker-badge">
+        <span class="ticker-dot"></span>
+        LIVE NOTICE
+      </div>
+      <div class="ticker-wrapper">
+        <div id="tickerTrack" class="ticker-track">
+          <!-- Text dynamically injected -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Connection Status Badge -->
+    <div id="footerStatusBadge" class="display-footer-status">
+      <span style="color:#10b981;">●</span> Sync Ready
+    </div>
+
+  </div>
+
+  <script type="module" src="js/display.js"></script>
+</body>
+</html>

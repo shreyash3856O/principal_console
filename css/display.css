@@ -1,0 +1,352 @@
+/* Smart Board Display Layout & Styling */
+
+/* Ensure display-screen strictly locks viewport without affecting admin page scroll */
+.display-screen {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  user-select: none;
+  background: var(--bg-dark);
+  background-image: 
+    radial-gradient(at 15% 15%, rgba(30, 58, 138, 0.25) 0px, transparent 60%),
+    radial-gradient(at 85% 85%, rgba(180, 83, 9, 0.15) 0px, transparent 60%);
+  display: flex;
+  flex-direction: column;
+  color: var(--text-main);
+  position: relative;
+}
+
+/* Glassy Header Bar */
+.display-header {
+  padding: 1rem 2.5rem;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  z-index: 50;
+  transition: all var(--transition-normal);
+}
+
+/* Glassy Header in Fullscreen Mode */
+:fullscreen .display-header,
+:-webkit-full-screen .display-header,
+.is-fullscreen .display-header {
+  background: rgba(7, 13, 25, 0.25);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.display-brand {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.display-crest {
+  width: 46px;
+  height: 46px;
+  filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.5));
+}
+
+.display-institution {
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--primary-accent);
+  text-transform: uppercase;
+}
+
+.display-subtitle {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+/* Clock & Controls Header Right */
+.display-header-right {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.clock-box {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.clock-time {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.clock-date {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-top: 0.2rem;
+}
+
+.fullscreen-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-main);
+  padding: 0.55rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all var(--transition-fast);
+}
+
+.fullscreen-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: var(--primary-accent);
+}
+
+/* Main Display Content Area (Full Landscape Image Canvas) */
+.display-content {
+  flex: 1;
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Landscape Slideshow Card Frame */
+.slideshow-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(10, 16, 30, 0.8);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slideshow-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Slide Item Wrapper */
+.slide-item {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.slide-item.active {
+  opacity: 1;
+}
+
+/* Foreground Main Image (Landscape Fitted) */
+.slideshow-image {
+  position: relative;
+  z-index: 2;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 30px rgba(0,0,0,0.8));
+}
+
+/* Background Blurred Image Backdrop for Pillarbox/Letterbox aesthetics */
+.slideshow-bg-blur {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(40px) brightness(0.35);
+  transform: scale(1.15);
+  z-index: 1;
+}
+
+/* Slideshow Indicators Dots */
+.slideshow-dots {
+  position: absolute;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.6rem;
+  z-index: 10;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  transition: all var(--transition-fast);
+}
+
+.dot.active {
+  background: var(--primary-accent);
+  width: 24px;
+  border-radius: var(--radius-full);
+}
+
+/* News Channel Ticker Banner */
+.ticker-bar {
+  background: linear-gradient(90deg, #991b1b, #dc2626, #b91c1c);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  height: 52px;
+  overflow: hidden;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+  position: relative;
+  z-index: 40;
+  border-top: 2px solid #ef4444;
+}
+
+.ticker-badge {
+  background: #7f1d1d;
+  padding: 0 1.5rem;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  box-shadow: 4px 0 15px rgba(0,0,0,0.4);
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.ticker-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #fef08a;
+  box-shadow: 0 0 10px #fef08a;
+  animation: pulse-dot 1.2s infinite;
+}
+
+.ticker-wrapper {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.ticker-track {
+  display: inline-block;
+  white-space: nowrap;
+  padding-left: 100%;
+  animation: newsTickerLeftToRight 24s linear infinite;
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* News ticker left-to-right marquee animation */
+@keyframes newsTickerLeftToRight {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Empty State View */
+.empty-state {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(20px);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-lg);
+  margin: auto 0;
+}
+
+.empty-crest {
+  width: 100px;
+  height: 100px;
+  opacity: 0.4;
+  margin-bottom: 1.5rem;
+}
+
+.empty-title {
+  font-size: 2.2rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.empty-subtitle {
+  font-size: 1.1rem;
+  color: var(--text-dim);
+  max-width: 500px;
+}
+
+/* Status Indicator Footer */
+.display-footer-status {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.5rem;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  background: rgba(15, 23, 42, 0.7);
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
