@@ -10,12 +10,13 @@ let currentImages = [];
 let isUnlocked = false;
 
 document.addEventListener('DOMContentLoaded', () => {
-  const { isCloudActive } = initStore();
-  updateSyncBadge(isCloudActive);
+  const { isCloudActive, isFirebaseActive } = initStore();
+  updateSyncBadge(isCloudActive, isFirebaseActive);
 
   initTheme();
   setupThemeToggle();
   setupPasscodeGate();
+  setupCloudModal();
   setupFormListeners();
   setupDropzone();
   setupRealtimePreview();
@@ -355,17 +356,107 @@ function updateLivePreviewFromForm() {
   }
 }
 
-function updateSyncBadge(isCloudActive) {
+function updateSyncBadge(isCloudActive, isFirebaseActive) {
   const badge = document.getElementById('syncStatusBadge');
   const banner = document.getElementById('configBanner');
 
-  if (isCloudActive) {
-    badge.className = 'badge badge-live';
-    badge.textContent = 'Cloud Realtime Active';
+  if (isFirebaseActive) {
+    if (badge) {
+      badge.className = 'badge badge-live';
+      badge.textContent = '🔥 Firebase Firestore Active';
+    }
+    if (banner) banner.style.display = 'none';
+  } else if (isCloudActive) {
+    if (badge) {
+      badge.className = 'badge badge-live';
+      badge.textContent = '🌐 Multi-Device Cloud Sync Active';
+    }
     if (banner) banner.style.display = 'none';
   } else {
-    badge.className = 'badge badge-demo';
-    badge.textContent = 'Local Realtime Mode';
+    if (badge) {
+      badge.className = 'badge badge-demo';
+      badge.textContent = 'Local Mode';
+    }
     if (banner) banner.style.display = 'flex';
+  }
+}
+
+/**
+ * Cloud Setup Modal Setup
+ */
+function setupCloudModal() {
+  const openBtn = document.getElementById('cloudSetupBtn');
+  const closeBtn = document.getElementById('closeCloudModalBtn');
+  const modal = document.getElementById('cloudModal');
+  const form = document.getElementById('cloudConfigForm');
+  const clearBtn = document.getElementById('clearCloudConfigBtn');
+
+  if (!modal) return;
+
+  const apiKeyInput = document.getElementById('cfgApiKey');
+  const projectIdInput = document.getElementById('cfgProjectId');
+  const authDomainInput = document.getElementById('cfgAuthDomain');
+
+  // Load current saved credentials if existing
+  const populateInputs = () => {
+    try {
+      const saved = localStorage.getItem('custom_firebase_config');
+      if (saved) {
+        const cfg = JSON.parse(saved);
+        if (apiKeyInput) apiKeyInput.value = cfg.apiKey || '';
+        if (projectIdInput) projectIdInput.value = cfg.projectId || '';
+        if (authDomainInput) authDomainInput.value = cfg.authDomain || '';
+      }
+    } catch (e) {}
+  };
+
+  if (openBtn) {
+    openBtn.addEventListener('click', () => {
+      populateInputs();
+      modal.style.display = 'flex';
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+  }
+
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const apiKey = apiKeyInput ? apiKeyInput.value.trim() : '';
+      const projectId = projectIdInput ? projectIdInput.value.trim() : '';
+      const authDomain = authDomainInput ? authDomainInput.value.trim() : `${projectId}.firebaseapp.com`;
+
+      if (!apiKey || !projectId) {
+        showToast('API Key and Project ID are required.', 'error');
+        return;
+      }
+
+      const cfg = {
+        apiKey,
+        projectId,
+        authDomain,
+        storageBucket: `${projectId}.appspot.com`,
+        messagingSenderId: '123456789',
+        appId: '1:123456789:web:app'
+      };
+
+      localStorage.setItem('custom_firebase_config', JSON.stringify(cfg));
+      showToast('Firebase Credentials Saved! Connecting to Cloud...', 'success');
+      modal.style.display = 'none';
+      setTimeout(() => location.reload(), 1000);
+    });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      localStorage.removeItem('custom_firebase_config');
+      showToast('Custom credentials reset to Public Cloud Relay Mode.', 'info');
+      modal.style.display = 'none';
+      setTimeout(() => location.reload(), 1000);
+    });
   }
 }

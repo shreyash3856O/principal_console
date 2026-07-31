@@ -54,6 +54,9 @@
 
     <div class="header-actions">
       <span id="syncStatusBadge" class="badge badge-demo">Connecting...</span>
+      <button id="cloudSetupBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;" title="Configure Cloud Sync Credentials">
+        ☁️ Cloud Setup
+      </button>
       <button id="themeToggleBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;" title="Toggle Light / Dark Mode">
         🌙 Dark Mode
       </button>
@@ -68,6 +71,40 @@
       </button>
     </div>
   </header>
+
+  <!-- Cloud Firebase Setup Modal Overlay -->
+  <div id="cloudModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card glass-panel" style="max-width: 500px; text-align: left;">
+      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <h3 style="font-size: 1.2rem; margin: 0;">☁️ Firebase Cloud Sync Configuration</h3>
+        <button id="closeCloudModalBtn" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-main);">&times;</button>
+      </div>
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem;">
+        Connect custom Firebase Firestore credentials for dedicated multi-device realtime push across networks.
+      </p>
+
+      <form id="cloudConfigForm" style="width: 100%; display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.75rem;">
+        <div>
+          <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">API KEY</label>
+          <input type="text" id="cfgApiKey" class="form-input" placeholder="AIzaSy..." required style="font-size: 0.85rem;" />
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">PROJECT ID</label>
+            <input type="text" id="cfgProjectId" class="form-input" placeholder="my-noticeboard-app" required style="font-size: 0.85rem;" />
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">AUTH DOMAIN</label>
+            <input type="text" id="cfgAuthDomain" class="form-input" placeholder="my-app.firebaseapp.com" style="font-size: 0.85rem;" />
+          </div>
+        </div>
+        <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">Save & Connect Firebase</button>
+          <button type="button" id="clearCloudConfigBtn" class="btn btn-secondary" style="font-size: 0.85rem;">Reset</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- Main Container -->
   <main class="admin-container">

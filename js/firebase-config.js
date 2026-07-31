@@ -15,13 +15,31 @@ export const firebaseConfig = {
 };
 
 /**
- * Returns true if user has replaced the default placeholders with actual Firebase project keys.
+ * Get active Firebase configuration (checks localStorage for custom user credentials first)
+ */
+export function getActiveFirebaseConfig() {
+  try {
+    const saved = localStorage.getItem('custom_firebase_config');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.apiKey && !parsed.apiKey.includes("YOUR_API_KEY")) {
+        return parsed;
+      }
+    }
+  } catch (e) {}
+  return firebaseConfig;
+}
+
+/**
+ * Returns true if user has provided active Firebase project keys.
  */
 export function isFirebaseConfigured() {
-  return (
-    firebaseConfig.apiKey &&
-    !firebaseConfig.apiKey.includes("YOUR_API_KEY") &&
-    firebaseConfig.projectId &&
-    !firebaseConfig.projectId.includes("YOUR_PROJECT_ID")
+  const config = getActiveFirebaseConfig();
+  return Boolean(
+    config &&
+    config.apiKey &&
+    !config.apiKey.includes("YOUR_API_KEY") &&
+    config.projectId &&
+    !config.projectId.includes("YOUR_PROJECT_ID")
   );
 }

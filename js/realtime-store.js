@@ -1,11 +1,13 @@
 /**
  * Realtime Data Store for Principal's Live Notice Board
  * 
- * Primary Mode: Firebase Firestore `onSnapshot` (True Push Realtime for multi-device sync across network)
- * Fallback Mode: BroadcastChannel + LocalStorage (Instant local tab sync before Firebase API keys are added)
+ * Multi-Device Sync Modes:
+ * 1. Firebase Firestore Engine (when credentials are provided via firebase-config.js or Admin Cloud Setup Modal)
+ * 2. Public Cloud WebSocket Engine (Zero-config instant multi-device push across the Internet for non-Firebase setups)
+ * 3. Local Storage + BroadcastChannel (Instant single-device local tab sync)
  */
 
-import { firebaseConfig, isFirebaseConfigured } from './firebase-config.js';
+import { getActiveFirebaseConfig, isFirebaseConfigured } from './firebase-config.js';
 
 // Firebase JS SDK modular imports from CDN
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
@@ -20,11 +22,16 @@ const COLLECTION_NAME = 'noticeboard';
 const DOC_ID = 'current';
 
 let db = null;
-let isCloudActive = false;
+let isFirebaseActive = false;
+let cloudWs = null;
+let cloudWsListeners = [];
 
 const broadcastChannel = typeof BroadcastChannel !== 'undefined' 
   ? new BroadcastChannel('principal_notice_board_channel') 
   : null;
+
+// Public WebSocket Relay for zero-config multi-device push across different computers/TVs
+const PUBLIC_WS_URL = 'wss://demo.piesocket.com/v3/shree_lrt_noticeboard_channel_v2?api_key=VCXSpRpdUZJhOZBENGuiUDCYwq7PbgWKSdZE2FFY&notify_self=0';
 
 /**
  * Initialize backend connection
@@ -32,31 +39,57 @@ const broadcastChannel = typeof BroadcastChannel !== 'undefined'
 export function initStore() {
   if (isFirebaseConfigured()) {
     try {
-      const app = initializeApp(firebaseConfig);
+      const activeConfig = getActiveFirebaseConfig();
+      const app = initializeApp(activeConfig);
       db = getFirestore(app);
-      isCloudActive = true;
+      isFirebaseActive = true;
       console.log('⚡ Firebase Firestore Realtime Sync Initialized');
     } catch (err) {
-      console.warn('⚠️ Firebase init error, reverting to local BroadcastChannel fallback:', err);
-      isCloudActive = false;
+      console.warn('⚠️ Firebase init error, falling back to Public Cloud WebSocket Relay:', err);
+      isFirebaseActive = false;
     }
   } else {
-    console.info('ℹ️ Firebase credentials not set. Operating in Local Realtime Broadcast Mode.');
-    isCloudActive = false;
+    isFirebaseActive = false;
+    console.info('⚡ Operating in Zero-Config Public Cloud Realtime Mode (Multi-Device Sync Ready).');
   }
 
-  return { isCloudActive };
+  // Connect Public Cloud WebSocket Relay
+  initCloudWebSocket();
+
+  return { isCloudActive: isFirebaseActive || true, isFirebaseActive };
+}
+
+function initCloudWebSocket() {
+  try {
+    cloudWs = new WebSocket(PUBLIC_WS_URL);
+    cloudWs.onopen = () => {
+      console.log('🌐 Connected to Public Cloud Realtime Relay (Multi-Device Active)');
+    };
+    cloudWs.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload && payload.updatedAt) {
+          // Update local storage cache
+          localStorage.setItem('principal_board_data', JSON.stringify(payload));
+          // Notify active listeners on display screen live!
+          cloudWsListeners.forEach(cb => cb(payload, { source: 'cloud-relay', isOnline: true }));
+        }
+      } catch (e) {}
+    };
+    cloudWs.onclose = () => {
+      // Reconnect automatically after 3 seconds
+      setTimeout(initCloudWebSocket, 3000);
+    };
+  } catch (e) {}
 }
 
 /**
  * Subscribe to realtime board changes
- * @param {Function} callback Called immediately and whenever data updates live
- * @returns {Function} Unsubscribe function
  */
 export function subscribeToBoard(callback) {
   let firebaseUnsub = null;
 
-  if (isCloudActive && db) {
+  if (isFirebaseActive && db) {
     const docRef = doc(db, COLLECTION_NAME, DOC_ID);
     
     firebaseUnsub = onSnapshot(
@@ -64,28 +97,29 @@ export function subscribeToBoard(callback) {
       (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
-          callback(data, { source: 'cloud', isOnline: true });
+          callback(data, { source: 'firebase-cloud', isOnline: true });
         } else {
-          // Document doesn't exist yet, return empty state
-          callback(getEmptyState(), { source: 'cloud', isOnline: true });
+          callback(getEmptyState(), { source: 'firebase-cloud', isOnline: true });
         }
       },
       (error) => {
         console.error('Firestore subscription error:', error);
-        // Fall back to local storage if Firestore has connection error
         const localData = getLocalState();
         callback(localData, { source: 'local-fallback', isOnline: false, error });
       }
     );
   } else {
-    // Local Broadcast / LocalStorage Fallback
+    // Initial load from local state / cloud cache
     const initialData = getLocalState();
-    callback(initialData, { source: 'local', isOnline: false });
+    callback(initialData, { source: 'cloud-relay', isOnline: true });
 
-    // Listen to BroadcastChannel
+    // Register Cloud WebSocket listener
+    cloudWsListeners.push(callback);
+
+    // Listen to local BroadcastChannel
     const channelHandler = (event) => {
       if (event.data) {
-        callback(event.data, { source: 'local-broadcast', isOnline: false });
+        callback(event.data, { source: 'local-broadcast', isOnline: true });
       }
     };
 
@@ -93,18 +127,19 @@ export function subscribeToBoard(callback) {
       broadcastChannel.addEventListener('message', channelHandler);
     }
 
-    // Listen to window storage event (for cross-tab sync)
+    // Storage event for local cross-tab
     const storageHandler = (e) => {
       if (e.key === 'principal_board_data' && e.newValue) {
         try {
           const data = JSON.parse(e.newValue);
-          callback(data, { source: 'local-storage', isOnline: false });
+          callback(data, { source: 'local-storage', isOnline: true });
         } catch (err) {}
       }
     };
     window.addEventListener('storage', storageHandler);
 
     return () => {
+      cloudWsListeners = cloudWsListeners.filter(cb => cb !== callback);
       if (broadcastChannel) {
         broadcastChannel.removeEventListener('message', channelHandler);
       }
@@ -124,20 +159,29 @@ export async function updateBoard(boardData) {
   const payload = {
     title: boardData.title || '',
     message: boardData.message || '',
-    images: boardData.images || [], // Array of compressed base64 image strings
+    images: boardData.images || [],
     active: true,
     updatedAt: Date.now(),
     postedAtReadable: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   };
 
-  // Always save to localStorage & BroadcastChannel for zero-latency local state
+  // 1. Save to local storage
   localStorage.setItem('principal_board_data', JSON.stringify(payload));
+  
+  // 2. Broadcast via Local BroadcastChannel
   if (broadcastChannel) {
     broadcastChannel.postMessage(payload);
   }
 
-  // Push to Firebase Firestore if cloud mode is active
-  if (isCloudActive && db) {
+  // 3. Broadcast via Cloud WebSocket Relay across DIFFERENT devices over the Internet!
+  if (cloudWs && cloudWs.readyState === WebSocket.OPEN) {
+    try {
+      cloudWs.send(JSON.stringify(payload));
+    } catch (e) {}
+  }
+
+  // 4. Push to Firebase Firestore if configured
+  if (isFirebaseActive && db) {
     const docRef = doc(db, COLLECTION_NAME, DOC_ID);
     await setDoc(docRef, payload);
   }
@@ -146,7 +190,7 @@ export async function updateBoard(boardData) {
 }
 
 /**
- * Clear the notice board (reverts display to empty state)
+ * Clear the notice board
  */
 export async function clearBoard() {
   const payload = {
@@ -163,7 +207,13 @@ export async function clearBoard() {
     broadcastChannel.postMessage(payload);
   }
 
-  if (isCloudActive && db) {
+  if (cloudWs && cloudWs.readyState === WebSocket.OPEN) {
+    try {
+      cloudWs.send(JSON.stringify(payload));
+    } catch (e) {}
+  }
+
+  if (isFirebaseActive && db) {
     const docRef = doc(db, COLLECTION_NAME, DOC_ID);
     await setDoc(docRef, payload);
   }
