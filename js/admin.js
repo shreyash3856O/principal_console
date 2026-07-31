@@ -4,6 +4,7 @@
 
 import { verifyPasscode, updatePasscode, compressImage, showToast } from './utils.js';
 import { initStore, subscribeToBoard, updateBoard, clearBoard } from './realtime-store.js';
+import { getShareableDisplayUrl } from './firebase-config.js';
 
 // Application State
 let currentImages = [];
@@ -17,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupThemeToggle();
   setupPasscodeGate();
   setupCloudModal();
+  setupCopyDisplayLink();
   setupFormListeners();
   setupDropzone();
   setupRealtimePreview();
@@ -472,4 +474,25 @@ function setupCloudModal() {
       setTimeout(() => location.reload(), 800);
     });
   }
+}
+
+/**
+ * Setup Copy Display Link for TV / Phone Auto-Config
+ */
+function setupCopyDisplayLink() {
+  const copyBtn = document.getElementById('copyDisplayLinkBtn');
+  if (!copyBtn) return;
+
+  copyBtn.addEventListener('click', () => {
+    const url = getShareableDisplayUrl();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        showToast('📋 TV Sync Link copied! Open this link on your phone/TV to auto-connect.', 'success', 6000);
+      }).catch(() => {
+        prompt('Copy this TV Sync URL to open on your phone or Smart TV:', url);
+      });
+    } else {
+      prompt('Copy this TV Sync URL to open on your phone or Smart TV:', url);
+    }
+  });
 }

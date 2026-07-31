@@ -1,8 +1,8 @@
 /**
  * Firebase Configuration for Principal's Live Notice Board
  * 
- * Replace the values below with your Firebase Project configuration details.
- * See README.md for step-by-step instructions on setting up Firebase Firestore.
+ * You can paste your Firebase credentials into firebaseConfig below,
+ * or use the "Cloud Setup" modal in the Admin Console.
  */
 
 export const firebaseConfig = {
@@ -15,23 +15,57 @@ export const firebaseConfig = {
 };
 
 /**
- * Get active Firebase configuration (checks localStorage for custom user credentials first)
+ * Get active Firebase configuration.
+ * Order of priority:
+ * 1. URL Query Parameters (?apiKey=...&projectId=...)
+ * 2. Custom localStorage credentials (saved via Admin Cloud Setup)
+ * 3. Default firebaseConfig object above
  */
 export function getActiveFirebaseConfig() {
+  // Priority 1: Check URL search parameters
   try {
-    const saved = localStorage.getItem('custom_firebase_config');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed && parsed.apiKey && !parsed.apiKey.includes("YOUR_API_KEY")) {
-        return parsed;
+    if (typeof window !== 'undefined' && window.location && window.location.search) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const qApiKey = urlParams.get('apiKey');
+      const qProjectId = urlParams.get('projectId');
+      const qAppId = urlParams.get('appId');
+      const qSenderId = urlParams.get('messagingSenderId');
+
+      if (qApiKey && qProjectId) {
+        const qConfig = {
+          apiKey: qApiKey,
+          projectId: qProjectId,
+          authDomain: urlParams.get('authDomain') || `${qProjectId}.firebaseapp.com`,
+          storageBucket: urlParams.get('storageBucket') || `${qProjectId}.appspot.com`,
+          messagingSenderId: qSenderId || '123456789',
+          appId: qAppId || '1:123456789:web:app'
+        };
+        // Auto-save to localStorage so future visits without query params work automatically
+        localStorage.setItem('custom_firebase_config', JSON.stringify(qConfig));
+        return qConfig;
       }
     }
   } catch (e) {}
+
+  // Priority 2: Check localStorage
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem('custom_firebase_config');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.apiKey && !parsed.apiKey.includes("YOUR_API_KEY")) {
+          return parsed;
+        }
+      }
+    }
+  } catch (e) {}
+
+  // Priority 3: Fallback to static firebaseConfig
   return firebaseConfig;
 }
 
 /**
- * Returns true if user has provided active Firebase project keys.
+ * Returns true if active Firebase credentials are valid and non-placeholder.
  */
 export function isFirebaseConfigured() {
   const config = getActiveFirebaseConfig();
@@ -42,4 +76,22 @@ export function isFirebaseConfigured() {
     config.projectId &&
     !config.projectId.includes("YOUR_PROJECT_ID")
   );
+}
+
+/**
+ * Generate a direct self-configuring URL for TV / Phone display screens
+ */
+export function getShareableDisplayUrl() {
+  const config = getActiveFirebaseConfig();
+  const baseUrl = `${window.location.origin}/display.html`;
+  if (!isFirebaseConfigured()) return baseUrl;
+
+  const params = new URLSearchParams({
+    apiKey: config.apiKey,
+    projectId: config.projectId,
+    appId: config.appId || '',
+    messagingSenderId: config.messagingSenderId || ''
+  });
+
+  return `${baseUrl}?${params.toString()}`;
 }
