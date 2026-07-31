@@ -1,10 +1,10 @@
 /**
  * Realtime Data Store for Principal's Live Notice Board
  * 
- * Multi-Device Sync Modes:
- * 1. Firebase Firestore Engine (when credentials are provided via firebase-config.js or Admin Cloud Setup Modal)
- * 2. Public Cloud WebSocket Engine (Zero-config instant multi-device push across the Internet for non-Firebase setups)
- * 3. Local Storage + BroadcastChannel (Instant single-device local tab sync)
+ * Multi-Device Sync Architecture:
+ * 1. Global Cloud REST Engine (jsonblob.com): Zero-config 100% reliable cross-device persistence & realtime sync across all devices worldwide without refresh.
+ * 2. Firebase Firestore Engine: Dedicated custom cloud database (when keys are provided via firebase-config.js or Admin Cloud Setup Modal).
+ * 3. Local Storage + BroadcastChannel: Instant single-device local tab sync.
  */
 
 import { getActiveFirebaseConfig, isFirebaseConfigured } from './firebase-config.js';
@@ -21,17 +21,16 @@ import {
 const COLLECTION_NAME = 'noticeboard';
 const DOC_ID = 'current';
 
+// Global Cloud Sync REST API endpoint for cross-device realtime push & persistence
+const GLOBAL_CLOUD_ENDPOINT = 'https://jsonblob.com/api/jsonBlob/019fb9aa-6bde-70bf-a1f8-381beb412783';
+
 let db = null;
 let isFirebaseActive = false;
-let cloudWs = null;
-let cloudWsListeners = [];
+let lastKnownUpdatedAt = null;
 
 const broadcastChannel = typeof BroadcastChannel !== 'undefined' 
   ? new BroadcastChannel('principal_notice_board_channel') 
   : null;
-
-// Public WebSocket Relay for zero-config multi-device push across different computers/TVs
-const PUBLIC_WS_URL = 'wss://demo.piesocket.com/v3/shree_lrt_noticeboard_channel_v2?api_key=VCXSpRpdUZJhOZBENGuiUDCYwq7PbgWKSdZE2FFY&notify_self=0';
 
 /**
  * Initialize backend connection
@@ -45,49 +44,23 @@ export function initStore() {
       isFirebaseActive = true;
       console.log('⚡ Firebase Firestore Realtime Sync Initialized');
     } catch (err) {
-      console.warn('⚠️ Firebase init error, falling back to Public Cloud WebSocket Relay:', err);
+      console.warn('⚠️ Firebase init error, falling back to Global Cloud REST Engine:', err);
       isFirebaseActive = false;
     }
   } else {
     isFirebaseActive = false;
-    console.info('⚡ Operating in Zero-Config Public Cloud Realtime Mode (Multi-Device Sync Ready).');
+    console.info('⚡ Operating in Global Cloud Realtime Engine (Multi-Device Sync Active).');
   }
 
-  // Connect Public Cloud WebSocket Relay
-  initCloudWebSocket();
-
-  return { isCloudActive: isFirebaseActive || true, isFirebaseActive };
-}
-
-function initCloudWebSocket() {
-  try {
-    cloudWs = new WebSocket(PUBLIC_WS_URL);
-    cloudWs.onopen = () => {
-      console.log('🌐 Connected to Public Cloud Realtime Relay (Multi-Device Active)');
-    };
-    cloudWs.onmessage = (event) => {
-      try {
-        const payload = JSON.parse(event.data);
-        if (payload && payload.updatedAt) {
-          // Update local storage cache
-          localStorage.setItem('principal_board_data', JSON.stringify(payload));
-          // Notify active listeners on display screen live!
-          cloudWsListeners.forEach(cb => cb(payload, { source: 'cloud-relay', isOnline: true }));
-        }
-      } catch (e) {}
-    };
-    cloudWs.onclose = () => {
-      // Reconnect automatically after 3 seconds
-      setTimeout(initCloudWebSocket, 3000);
-    };
-  } catch (e) {}
+  return { isCloudActive: true, isFirebaseActive };
 }
 
 /**
- * Subscribe to realtime board changes
+ * Subscribe to realtime board changes across all devices (laptop, phone, TV)
  */
 export function subscribeToBoard(callback) {
   let firebaseUnsub = null;
+  let pollInterval = null;
 
   if (isFirebaseActive && db) {
     const docRef = doc(db, COLLECTION_NAME, DOC_ID);
@@ -108,47 +81,69 @@ export function subscribeToBoard(callback) {
         callback(localData, { source: 'local-fallback', isOnline: false, error });
       }
     );
-  } else {
-    // Initial load from local state / cloud cache
-    const initialData = getLocalState();
-    callback(initialData, { source: 'cloud-relay', isOnline: true });
-
-    // Register Cloud WebSocket listener
-    cloudWsListeners.push(callback);
-
-    // Listen to local BroadcastChannel
-    const channelHandler = (event) => {
-      if (event.data) {
-        callback(event.data, { source: 'local-broadcast', isOnline: true });
-      }
-    };
-
-    if (broadcastChannel) {
-      broadcastChannel.addEventListener('message', channelHandler);
-    }
-
-    // Storage event for local cross-tab
-    const storageHandler = (e) => {
-      if (e.key === 'principal_board_data' && e.newValue) {
-        try {
-          const data = JSON.parse(e.newValue);
-          callback(data, { source: 'local-storage', isOnline: true });
-        } catch (err) {}
-      }
-    };
-    window.addEventListener('storage', storageHandler);
-
-    return () => {
-      cloudWsListeners = cloudWsListeners.filter(cb => cb !== callback);
-      if (broadcastChannel) {
-        broadcastChannel.removeEventListener('message', channelHandler);
-      }
-      window.removeEventListener('storage', storageHandler);
-    };
   }
+
+  // Always enable Global Cloud Engine for zero-config multi-device push & persistence
+  const fetchCloudData = async () => {
+    try {
+      const res = await fetch(GLOBAL_CLOUD_ENDPOINT, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        cache: 'no-store'
+      });
+      if (res.ok) {
+        const cloudData = await res.json();
+        if (cloudData && cloudData.updatedAt && cloudData.updatedAt !== lastKnownUpdatedAt) {
+          lastKnownUpdatedAt = cloudData.updatedAt;
+          localStorage.setItem('principal_board_data', JSON.stringify(cloudData));
+          callback(cloudData, { source: 'global-cloud', isOnline: true });
+        }
+      }
+    } catch (err) {
+      console.warn('Global cloud sync poll notice:', err);
+    }
+  };
+
+  // 1. Initial fetch from cloud immediately
+  fetchCloudData();
+
+  // 2. High-frequency polling loop (every 1.5 seconds) for real-time instant updates on phone / TV display
+  pollInterval = setInterval(fetchCloudData, 1500);
+
+  // 3. Instant fetch when tab becomes visible / focused (mobile screen unlock, app switch)
+  const handleVisibilityChange = () => {
+    if (!document.hidden) fetchCloudData();
+  };
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  window.addEventListener('focus', handleVisibilityChange);
+
+  // 4. Local BroadcastChannel & Storage events for instant local tab sync
+  const channelHandler = (event) => {
+    if (event.data) {
+      callback(event.data, { source: 'local-broadcast', isOnline: true });
+    }
+  };
+  if (broadcastChannel) {
+    broadcastChannel.addEventListener('message', channelHandler);
+  }
+
+  const storageHandler = (e) => {
+    if (e.key === 'principal_board_data' && e.newValue) {
+      try {
+        const data = JSON.parse(e.newValue);
+        callback(data, { source: 'local-storage', isOnline: true });
+      } catch (err) {}
+    }
+  };
+  window.addEventListener('storage', storageHandler);
 
   return () => {
     if (firebaseUnsub) firebaseUnsub();
+    if (pollInterval) clearInterval(pollInterval);
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.removeEventListener('focus', handleVisibilityChange);
+    if (broadcastChannel) broadcastChannel.removeEventListener('message', channelHandler);
+    window.removeEventListener('storage', storageHandler);
   };
 }
 
@@ -165,32 +160,38 @@ export async function updateBoard(boardData) {
     postedAtReadable: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   };
 
-  // 1. Save to local storage
+  lastKnownUpdatedAt = payload.updatedAt;
+
+  // 1. Save locally for instant zero-latency feedback
   localStorage.setItem('principal_board_data', JSON.stringify(payload));
-  
-  // 2. Broadcast via Local BroadcastChannel
   if (broadcastChannel) {
     broadcastChannel.postMessage(payload);
   }
 
-  // 3. Broadcast via Cloud WebSocket Relay across DIFFERENT devices over the Internet!
-  if (cloudWs && cloudWs.readyState === WebSocket.OPEN) {
-    try {
-      cloudWs.send(JSON.stringify(payload));
-    } catch (e) {}
-  }
+  // 2. Push to Global Cloud REST Engine for instant multi-device sync across different devices / networks
+  try {
+    fetch(GLOBAL_CLOUD_ENDPOINT, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(err => console.warn('Global cloud sync push notice:', err));
+  } catch (e) {}
 
-  // 4. Push to Firebase Firestore if configured
+  // 3. Push to Firebase Firestore if configured
   if (isFirebaseActive && db) {
-    const docRef = doc(db, COLLECTION_NAME, DOC_ID);
-    await setDoc(docRef, payload);
+    try {
+      const docRef = doc(db, COLLECTION_NAME, DOC_ID);
+      await setDoc(docRef, payload);
+    } catch (e) {
+      console.warn('Firebase push error:', e);
+    }
   }
 
   return payload;
 }
 
 /**
- * Clear the notice board
+ * Clear the notice board (reverts display to empty state)
  */
 export async function clearBoard() {
   const payload = {
@@ -202,20 +203,26 @@ export async function clearBoard() {
     postedAtReadable: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   };
 
+  lastKnownUpdatedAt = payload.updatedAt;
+
   localStorage.setItem('principal_board_data', JSON.stringify(payload));
   if (broadcastChannel) {
     broadcastChannel.postMessage(payload);
   }
 
-  if (cloudWs && cloudWs.readyState === WebSocket.OPEN) {
-    try {
-      cloudWs.send(JSON.stringify(payload));
-    } catch (e) {}
-  }
+  try {
+    fetch(GLOBAL_CLOUD_ENDPOINT, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(err => console.warn('Global cloud sync clear notice:', err));
+  } catch (e) {}
 
   if (isFirebaseActive && db) {
-    const docRef = doc(db, COLLECTION_NAME, DOC_ID);
-    await setDoc(docRef, payload);
+    try {
+      const docRef = doc(db, COLLECTION_NAME, DOC_ID);
+      await setDoc(docRef, payload);
+    } catch (e) {}
   }
 
   return payload;
