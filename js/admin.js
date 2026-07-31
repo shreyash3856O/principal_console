@@ -390,14 +390,16 @@ function setupCloudModal() {
   const modal = document.getElementById('cloudModal');
   const form = document.getElementById('cloudConfigForm');
   const clearBtn = document.getElementById('clearCloudConfigBtn');
+  const saveStatus = document.getElementById('cloudSaveStatus');
 
   if (!modal) return;
 
   const apiKeyInput = document.getElementById('cfgApiKey');
   const projectIdInput = document.getElementById('cfgProjectId');
-  const authDomainInput = document.getElementById('cfgAuthDomain');
+  const appIdInput = document.getElementById('cfgAppId');
+  const senderIdInput = document.getElementById('cfgSenderId');
 
-  // Load current saved credentials if existing
+  // Populate inputs from saved credentials
   const populateInputs = () => {
     try {
       const saved = localStorage.getItem('custom_firebase_config');
@@ -405,7 +407,8 @@ function setupCloudModal() {
         const cfg = JSON.parse(saved);
         if (apiKeyInput) apiKeyInput.value = cfg.apiKey || '';
         if (projectIdInput) projectIdInput.value = cfg.projectId || '';
-        if (authDomainInput) authDomainInput.value = cfg.authDomain || '';
+        if (appIdInput) appIdInput.value = cfg.appId || '';
+        if (senderIdInput) senderIdInput.value = cfg.messagingSenderId || '';
       }
     } catch (e) {}
   };
@@ -423,40 +426,50 @@ function setupCloudModal() {
     });
   }
 
+  // Close on overlay click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.style.display = 'none';
+  });
+
   if (form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const apiKey = apiKeyInput ? apiKeyInput.value.trim() : '';
       const projectId = projectIdInput ? projectIdInput.value.trim() : '';
-      const authDomain = authDomainInput ? authDomainInput.value.trim() : `${projectId}.firebaseapp.com`;
+      const appId = appIdInput ? appIdInput.value.trim() : '';
+      const messagingSenderId = senderIdInput ? senderIdInput.value.trim() : '';
 
-      if (!apiKey || !projectId) {
-        showToast('API Key and Project ID are required.', 'error');
+      if (!apiKey || !projectId || !appId || !messagingSenderId) {
+        showToast('All fields are required.', 'error');
         return;
       }
 
       const cfg = {
         apiKey,
         projectId,
-        authDomain,
+        authDomain: `${projectId}.firebaseapp.com`,
         storageBucket: `${projectId}.appspot.com`,
-        messagingSenderId: '123456789',
-        appId: '1:123456789:web:app'
+        messagingSenderId,
+        appId
       };
 
       localStorage.setItem('custom_firebase_config', JSON.stringify(cfg));
-      showToast('Firebase Credentials Saved! Connecting to Cloud...', 'success');
-      modal.style.display = 'none';
-      setTimeout(() => location.reload(), 1000);
+      
+      if (saveStatus) {
+        saveStatus.textContent = '✅ Credentials saved! Reloading to connect Firebase...';
+        saveStatus.style.display = 'block';
+      }
+      showToast('🔥 Firebase Connected! Reloading...', 'success');
+      setTimeout(() => location.reload(), 1200);
     });
   }
 
   if (clearBtn) {
     clearBtn.addEventListener('click', () => {
       localStorage.removeItem('custom_firebase_config');
-      showToast('Custom credentials reset to Public Cloud Relay Mode.', 'info');
+      showToast('Firebase credentials cleared.', 'info');
       modal.style.display = 'none';
-      setTimeout(() => location.reload(), 1000);
+      setTimeout(() => location.reload(), 800);
     });
   }
 }

@@ -42,8 +42,7 @@ function setupRealtimeSubscription() {
   subscribeToBoard((data, meta) => {
     // Update Connection Status Badge
     if (statusBadge) {
-      const isCloud = meta && (meta.source === 'cloud' || meta.source === 'global-cloud' || meta.source === 'firebase-cloud' || meta.source === 'cloud-relay' || meta.isOnline);
-      if (isCloud) {
+      if (meta && meta.source === 'cloud') {
         statusBadge.innerHTML = '<span style="color:#10b981;">●</span> Cloud Live Sync';
       } else {
         statusBadge.innerHTML = '<span style="color:#f59e0b;">●</span> Local Sync';
@@ -87,7 +86,7 @@ function renderNoticeBoard(data) {
   if (emptyView) emptyView.style.display = 'none';
   if (activeView) activeView.style.display = 'block';
 
-  // 1. Text Notice Handling (News Ticker Banner at bottom)
+  // 1. Text Notice Handling (Only appears on News Ticker Banner if provided)
   if (hasTextNotice && tickerBar && tickerTrack) {
     tickerBar.style.display = 'flex';
     const cleanBody = bodyText.replace(/\n/g, '  •  ');
@@ -95,30 +94,29 @@ function renderNoticeBoard(data) {
       ? `📢 ${titleText.toUpperCase()}${cleanBody ? ' — ' + cleanBody : ''}`
       : `📢 ${cleanBody}`;
 
+    // Repeat text string to ensure continuous loop
     tickerTrack.textContent = `${fullText}          ${fullText}          ${fullText}`;
 
+    // Adjust marquee animation duration dynamically based on text length
     const charCount = fullText.length;
     const duration = Math.max(16, Math.min(50, charCount * 0.28));
     tickerTrack.style.animationDuration = `${duration}s`;
   } else {
+    // No text notice provided -> Hide ticker bar completely
     if (tickerBar) tickerBar.style.display = 'none';
   }
 
-  // 2. Image Slideshow / Text Notice Card Handling
+  // 2. Image Slideshow Handling (Full Landscape Display)
   if (hasImages) {
     setupSlideshow(activeImages, slideshowContainer, dotsContainer);
   } else {
     stopSlideshow();
-    const logoSrc = document.querySelector('.display-crest')?.src || '';
-    const postedTime = data.postedAtReadable ? `Posted at ${data.postedAtReadable}` : 'OFFICIAL ANNOUNCEMENT';
-
     slideshowContainer.innerHTML = `
-      <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding:2rem; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); color: #0f172a; border-radius: var(--radius-lg);">
-        <div style="max-width:800px; width:100%; text-align:center; background: rgba(255, 255, 255, 0.95); padding: 3rem 2.5rem; border-radius: 1.25rem; border: 2px solid rgba(153, 0, 0, 0.15); box-shadow: 0 20px 40px rgba(153, 0, 0, 0.08);">
-          ${logoSrc ? `<img src="${logoSrc}" alt="College Logo" style="width:90px; height:90px; object-fit:contain; margin-bottom:1.25rem; filter: drop-shadow(0 6px 16px rgba(153, 0, 0, 0.2));" />` : ''}
-          <div style="font-size:0.8rem; font-weight:800; color:var(--primary-accent); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:0.5rem;">${postedTime}</div>
-          <h2 style="font-size:2.2rem; color:#990000; font-weight:800; line-height:1.25; margin-bottom:1rem;">${titleText || 'Official Notice'}</h2>
-          <p style="font-size:1.25rem; color:#1e293b; line-height:1.7; white-space: pre-wrap; word-break: break-word;">${bodyText}</p>
+      <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; text-align:center; padding:2rem;">
+        <div>
+          <img src="assets/logo.png" style="width:100px; height:100px; object-fit:contain; opacity:0.85; margin-bottom:1rem; filter: drop-shadow(0 4px 12px rgba(153, 0, 0, 0.2));" />
+          <h2 style="font-size:2rem; color:var(--primary-accent); font-weight:800;">${titleText || 'Official Notice'}</h2>
+          <p style="font-size:1.2rem; color:var(--text-main); margin-top:0.75rem; max-width:700px; line-height:1.6;">${bodyText}</p>
         </div>
       </div>
     `;
