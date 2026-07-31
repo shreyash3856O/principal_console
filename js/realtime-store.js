@@ -1,133 +1,114 @@
 /**
  * Realtime Data Store for Principal's Live Notice Board
  * 
- * Cross-Device Sync via Global Cloud REST API (jsonblob.com)
- * - Admin publishes → PUT to cloud endpoint
- * - Display page polls cloud endpoint every 2s → instant updates without refresh
- * - Works across any device, any network, anywhere in the world
- * 
- * Optional: Firebase Firestore (when credentials are provided)
+ * Supports:
+ * - Firebase Firestore (True realtime push across all devices when configured)
+ * - LocalStorage & BroadcastChannel (Local tab-to-tab fallback)
  */
 
-// ─── Cloud REST API Endpoint ───────────────────────────────────
-const CLOUD_API = 'https://jsonblob.com/api/jsonBlob/019fb9aa-6bde-70bf-a1f8-381beb412783';
+import { getActiveFirebaseConfig, isFirebaseConfigured } from './firebase-config.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+import { 
+  getFirestore, 
+  doc, 
+  setDoc, 
+  onSnapshot 
+} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
-// ─── State ─────────────────────────────────────────────────────
+const COLLECTION_NAME = 'noticeboard';
+const DOC_ID = 'current';
+
 let db = null;
 let isFirebaseActive = false;
-let lastSeenTimestamp = 0;
-let pollTimer = null;
 
 const broadcastChannel = (typeof BroadcastChannel !== 'undefined')
   ? new BroadcastChannel('principal_notice_board_channel')
   : null;
 
-// ─── Initialize ────────────────────────────────────────────────
+/**
+ * Initialize store
+ */
 export function initStore() {
-  // Try Firebase if user has configured custom credentials via localStorage
-  try {
-    const saved = localStorage.getItem('custom_firebase_config');
-    if (saved) {
-      const cfg = JSON.parse(saved);
-      if (cfg && cfg.apiKey && !cfg.apiKey.includes('YOUR_')) {
-        // Dynamically import Firebase only when credentials exist
-        Promise.all([
-          import('https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js'),
-          import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js')
-        ]).then(([appModule, fsModule]) => {
-          const app = appModule.initializeApp(cfg);
-          db = fsModule.getFirestore(app);
-          isFirebaseActive = true;
-          console.log('⚡ Firebase Firestore Realtime Sync Initialized');
-        }).catch(err => {
-          console.warn('Firebase init failed, using Cloud REST Engine:', err);
-        });
-      }
-    }
-  } catch (e) {}
-
-  console.log('🌐 Global Cloud REST Engine Active (Multi-Device Sync Ready)');
-  return { isCloudActive: true, isFirebaseActive };
-}
-
-// ─── Subscribe to Board Updates ────────────────────────────────
-export function subscribeToBoard(callback) {
-
-  // Immediately load from local cache first for instant render
-  const cached = getLocalState();
-  if (cached.updatedAt) {
-    lastSeenTimestamp = cached.updatedAt;
-    callback(cached, { source: 'cache', isOnline: true });
-  }
-
-  // Core polling function - fetches latest data from cloud
-  async function pollCloud() {
+  if (isFirebaseConfigured()) {
     try {
-      const res = await fetch(CLOUD_API, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' },
-        cache: 'no-store'
-      });
-      if (!res.ok) return;
-
-      const data = await res.json();
-      if (data && data.updatedAt && data.updatedAt !== lastSeenTimestamp) {
-        lastSeenTimestamp = data.updatedAt;
-        // Save to local cache
-        localStorage.setItem('principal_board_data', JSON.stringify(data));
-        // Push update to UI
-        callback(data, { source: 'cloud', isOnline: true });
-      }
+      const cfg = getActiveFirebaseConfig();
+      const app = initializeApp(cfg);
+      db = getFirestore(app);
+      isFirebaseActive = true;
+      console.log('⚡ Firebase Firestore Realtime Sync Connected:', cfg.projectId);
     } catch (err) {
-      // Network error — silently retry on next poll
+      console.warn('⚠️ Firebase init error:', err);
+      isFirebaseActive = false;
     }
+  } else {
+    isFirebaseActive = false;
+    console.info('ℹ️ Firebase credentials not provided. Operating in Local Mode.');
   }
 
-  // 1. First cloud fetch immediately
-  pollCloud();
+  return { isCloudActive: isFirebaseActive, isFirebaseActive };
+}
 
-  // 2. Poll every 2 seconds for near-realtime updates
-  pollTimer = setInterval(pollCloud, 2000);
+/**
+ * Subscribe to realtime board changes
+ */
+export function subscribeToBoard(callback) {
+  let firebaseUnsub = null;
 
-  // 3. Instant fetch when screen unlocked / tab focused (mobile wake-up)
-  const onVisible = () => { if (!document.hidden) pollCloud(); };
-  document.addEventListener('visibilitychange', onVisible);
-  window.addEventListener('focus', pollCloud);
-
-  // 4. Local BroadcastChannel for same-device instant sync
-  const onBroadcast = (e) => {
-    if (e.data && e.data.updatedAt) {
-      lastSeenTimestamp = e.data.updatedAt;
-      callback(e.data, { source: 'cloud', isOnline: true });
-    }
-  };
-  if (broadcastChannel) broadcastChannel.addEventListener('message', onBroadcast);
-
-  // 5. localStorage cross-tab sync
-  const onStorage = (e) => {
-    if (e.key === 'principal_board_data' && e.newValue) {
-      try {
-        const d = JSON.parse(e.newValue);
-        if (d.updatedAt && d.updatedAt !== lastSeenTimestamp) {
-          lastSeenTimestamp = d.updatedAt;
-          callback(d, { source: 'cloud', isOnline: true });
+  if (isFirebaseActive && db) {
+    const docRef = doc(db, COLLECTION_NAME, DOC_ID);
+    
+    firebaseUnsub = onSnapshot(
+      docRef,
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          localStorage.setItem('principal_board_data', JSON.stringify(data));
+          callback(data, { source: 'firebase', isOnline: true });
+        } else {
+          callback(getEmptyState(), { source: 'firebase', isOnline: true });
         }
-      } catch (_) {}
-    }
-  };
-  window.addEventListener('storage', onStorage);
+      },
+      (error) => {
+        console.error('Firestore subscription error:', error);
+        callback(getLocalState(), { source: 'local-fallback', isOnline: false, error });
+      }
+    );
+  } else {
+    // Local / BroadcastChannel Mode
+    const initialData = getLocalState();
+    callback(initialData, { source: 'local', isOnline: false });
 
-  // Cleanup
+    const channelHandler = (event) => {
+      if (event.data) {
+        callback(event.data, { source: 'local', isOnline: false });
+      }
+    };
+    if (broadcastChannel) broadcastChannel.addEventListener('message', channelHandler);
+
+    const storageHandler = (e) => {
+      if (e.key === 'principal_board_data' && e.newValue) {
+        try {
+          const data = JSON.parse(e.newValue);
+          callback(data, { source: 'local', isOnline: false });
+        } catch (err) {}
+      }
+    };
+    window.addEventListener('storage', storageHandler);
+
+    return () => {
+      if (broadcastChannel) broadcastChannel.removeEventListener('message', channelHandler);
+      window.removeEventListener('storage', storageHandler);
+    };
+  }
+
   return () => {
-    if (pollTimer) clearInterval(pollTimer);
-    document.removeEventListener('visibilitychange', onVisible);
-    window.removeEventListener('focus', pollCloud);
-    if (broadcastChannel) broadcastChannel.removeEventListener('message', onBroadcast);
-    window.removeEventListener('storage', onStorage);
+    if (firebaseUnsub) firebaseUnsub();
   };
 }
 
-// ─── Publish Notice ────────────────────────────────────────────
+/**
+ * Publish updated announcement to the board
+ */
 export async function updateBoard(boardData) {
   const payload = {
     title: boardData.title || '',
@@ -138,37 +119,25 @@ export async function updateBoard(boardData) {
     postedAtReadable: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   };
 
-  lastSeenTimestamp = payload.updatedAt;
-
-  // 1. Local cache (instant)
   localStorage.setItem('principal_board_data', JSON.stringify(payload));
   if (broadcastChannel) broadcastChannel.postMessage(payload);
 
-  // 2. Push to Global Cloud REST API → syncs to ALL devices worldwide
-  try {
-    await fetch(CLOUD_API, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    console.log('✅ Published to Global Cloud');
-  } catch (err) {
-    console.warn('Cloud push error (will retry):', err);
-  }
-
-  // 3. Firebase Firestore (if configured)
   if (isFirebaseActive && db) {
     try {
-      const fsModule = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
-      const docRef = fsModule.doc(db, 'noticeboard', 'current');
-      await fsModule.setDoc(docRef, payload);
-    } catch (e) {}
+      const docRef = doc(db, COLLECTION_NAME, DOC_ID);
+      await setDoc(docRef, payload);
+      console.log('🔥 Published to Firebase Firestore successfully');
+    } catch (e) {
+      console.error('Firebase publish error:', e);
+    }
   }
 
   return payload;
 }
 
-// ─── Clear Board ───────────────────────────────────────────────
+/**
+ * Clear the notice board
+ */
 export async function clearBoard() {
   const payload = {
     title: '',
@@ -179,35 +148,35 @@ export async function clearBoard() {
     postedAtReadable: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   };
 
-  lastSeenTimestamp = payload.updatedAt;
-
   localStorage.setItem('principal_board_data', JSON.stringify(payload));
   if (broadcastChannel) broadcastChannel.postMessage(payload);
 
-  try {
-    await fetch(CLOUD_API, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-  } catch (err) {}
-
   if (isFirebaseActive && db) {
     try {
-      const fsModule = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
-      const docRef = fsModule.doc(db, 'noticeboard', 'current');
-      await fsModule.setDoc(docRef, payload);
-    } catch (e) {}
+      const docRef = doc(db, COLLECTION_NAME, DOC_ID);
+      await setDoc(docRef, payload);
+    } catch (e) {
+      console.error('Firebase clear error:', e);
+    }
   }
 
   return payload;
 }
 
-// ─── Helpers ───────────────────────────────────────────────────
+function getEmptyState() {
+  return {
+    title: '',
+    message: '',
+    images: [],
+    active: false,
+    updatedAt: null
+  };
+}
+
 function getLocalState() {
   try {
     const raw = localStorage.getItem('principal_board_data');
     if (raw) return JSON.parse(raw);
   } catch (e) {}
-  return { title: '', message: '', images: [], active: false, updatedAt: null };
+  return getEmptyState();
 }
