@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,14 +10,18 @@
   <link rel="stylesheet" href="css/admin.css" />
   <link rel="stylesheet" href="css/display.css" />
 </head>
+
 <body class="admin-body">
 
   <!-- Passcode Auth Modal Overlay -->
   <div id="passcodeModal" class="modal-overlay">
     <div class="modal-card glass-panel">
-      <img src="assets/logo.png" alt="Shree L.R Tiwari College Logo" style="width: 72px; height: 72px; object-fit: contain;" />
+      <img src="assets/logo.png" alt="Shree L.R Tiwari College Logo"
+        style="width: 72px; height: 72px; object-fit: contain;" />
       <div>
-        <div style="font-size:0.75rem; font-weight:800; color:var(--primary-accent); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:0.25rem;">Shree L.R Tiwari College of Engineering</div>
+        <div
+          style="font-size:0.75rem; font-weight:800; color:var(--primary-accent); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:0.25rem;">
+          Shree L.R Tiwari College of Engineering</div>
         <h2 style="font-size: 1.4rem;">Principal's Console</h2>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
           Enter security passcode to control the Live Notice Board.
@@ -24,15 +29,10 @@
       </div>
 
       <div style="width: 100%;">
-        <input 
-          type="password" 
-          id="passcodeInput" 
-          class="form-input passcode-input" 
-          placeholder="••••" 
-          maxlength="8" 
-          autocomplete="off"
-        />
-        <div id="passcodeError" style="color: var(--status-error); font-size: 0.8rem; margin-top: 0.5rem; display: none;"></div>
+        <input type="password" id="passcodeInput" class="form-input passcode-input" placeholder="••••" maxlength="8"
+          autocomplete="off" />
+        <div id="passcodeError"
+          style="color: var(--status-error); font-size: 0.8rem; margin-top: 0.5rem; display: none;"></div>
       </div>
 
       <button id="unlockBtn" class="btn btn-primary" style="width: 100%;">
@@ -54,22 +54,28 @@
 
     <div class="header-actions">
       <span id="syncStatusBadge" class="badge badge-demo">Connecting...</span>
-      <button id="cloudSetupBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;" title="Configure Cloud Sync Credentials">
+      <button id="cloudSetupBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;"
+        title="Configure Cloud Sync Credentials">
         ☁️ Cloud Setup
       </button>
-      <button id="copyDisplayLinkBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;" title="Copy auto-configuring Display URL for TV or Phone">
+      <button id="copyDisplayLinkBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;"
+        title="Copy auto-configuring Display URL for TV or Phone">
         📋 Copy TV Sync Link
       </button>
-      <button id="themeToggleBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;" title="Toggle Light / Dark Mode">
+      <button id="themeToggleBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;"
+        title="Toggle Light / Dark Mode">
         🌙 Dark Mode
       </button>
-      <a href="display.html" target="_blank" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+      <a href="display.html" target="_blank" class="btn btn-secondary"
+        style="font-size: 0.85rem; padding: 0.5rem 1rem;">
         📺 Open Smart TV Display
       </a>
-      <button id="changePasscodeBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;" title="Change Passcode">
+      <button id="changePasscodeBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;"
+        title="Change Passcode">
         🔑 Passcode
       </button>
-      <button id="lockConsoleBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;" title="Lock Console">
+      <button id="lockConsoleBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;"
+        title="Lock Console">
         🔒 Lock
       </button>
     </div>
@@ -80,35 +86,48 @@
     <div class="modal-card glass-panel" style="max-width: 520px; text-align: left; gap: 0.75rem;">
       <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
         <h3 style="font-size: 1.2rem; margin: 0;">🔥 Firebase Firestore Setup</h3>
-        <button id="closeCloudModalBtn" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text-main); line-height: 1;">&times;</button>
+        <button id="closeCloudModalBtn"
+          style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text-main); line-height: 1;">&times;</button>
       </div>
       <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
-        Paste all values from your Firebase project's web app config. Enables <strong>true real-time push</strong> from your laptop directly to the TV/phone display.
+        Paste all values from your Firebase project's web app config. Enables <strong>true real-time push</strong> from
+        your laptop directly to the TV/phone display.
       </p>
 
       <form id="cloudConfigForm" style="width: 100%; display: flex; flex-direction: column; gap: 0.6rem;">
         <div>
-          <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em;">API KEY *</label>
-          <input type="text" id="cfgApiKey" class="form-input" placeholder="AIzaSy..." required style="font-size: 0.85rem;" />
+          <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em;">API KEY
+            *</label>
+          <input type="text" id="cfgApiKey" class="form-input" placeholder="AIzaSy..." required
+            style="font-size: 0.85rem;" />
         </div>
         <div>
-          <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em;">PROJECT ID *</label>
-          <input type="text" id="cfgProjectId" class="form-input" placeholder="my-noticeboard-app" required style="font-size: 0.85rem;" />
+          <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em;">PROJECT
+            ID *</label>
+          <input type="text" id="cfgProjectId" class="form-input" placeholder="my-noticeboard-app" required
+            style="font-size: 0.85rem;" />
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
           <div>
-            <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em;">APP ID *</label>
-            <input type="text" id="cfgAppId" class="form-input" placeholder="1:12345:web:abc..." required style="font-size: 0.85rem;" />
+            <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em;">APP
+              ID *</label>
+            <input type="text" id="cfgAppId" class="form-input" placeholder="1:12345:web:abc..." required
+              style="font-size: 0.85rem;" />
           </div>
           <div>
-            <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em;">MESSAGING SENDER ID *</label>
-            <input type="text" id="cfgSenderId" class="form-input" placeholder="123456789" required style="font-size: 0.85rem;" />
+            <label
+              style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em;">MESSAGING
+              SENDER ID *</label>
+            <input type="text" id="cfgSenderId" class="form-input" placeholder="123456789" required
+              style="font-size: 0.85rem;" />
           </div>
         </div>
-        <div id="cloudSaveStatus" style="font-size: 0.78rem; color: var(--status-success); display: none; padding: 0.4rem 0;"></div>
+        <div id="cloudSaveStatus"
+          style="font-size: 0.78rem; color: var(--status-success); display: none; padding: 0.4rem 0;"></div>
         <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
           <button type="submit" class="btn btn-primary" style="flex: 1; font-size: 0.9rem;">💾 Save & Connect</button>
-          <button type="button" id="clearCloudConfigBtn" class="btn btn-secondary" style="font-size: 0.85rem;">Reset</button>
+          <button type="button" id="clearCloudConfigBtn" class="btn btn-secondary"
+            style="font-size: 0.85rem;">Reset</button>
         </div>
       </form>
     </div>
@@ -127,23 +146,15 @@
       <!-- Notice Title -->
       <div class="form-group">
         <label for="noticeTitle" class="form-label">Notice Title (Optional if only uploading images)</label>
-        <input 
-          type="text" 
-          id="noticeTitle" 
-          class="form-input" 
-          placeholder="e.g. Annual Sports Day & Morning Assembly Address" 
-          maxlength="120"
-        />
+        <input type="text" id="noticeTitle" class="form-input"
+          placeholder="e.g. Annual Sports Day & Morning Assembly Address" maxlength="120" />
       </div>
 
       <!-- Notice Message -->
       <div class="form-group">
         <label for="noticeMessage" class="form-label">Announcement Message (Appears on News Ticker Banner)</label>
-        <textarea 
-          id="noticeMessage" 
-          class="form-textarea" 
-          placeholder="Enter message to scroll across news banner on TV display..."
-        ></textarea>
+        <textarea id="noticeMessage" class="form-textarea"
+          placeholder="Enter message to scroll across news banner on TV display..."></textarea>
       </div>
 
       <!-- Image Drag and Drop Area -->
@@ -174,20 +185,23 @@
     <!-- Right Column: Live Board Preview -->
     <section class="glass-panel preview-card">
       <div class="card-title">
-        <h2>👁️ Live Board Preview</h2>
+        <h2>Live Board Preview</h2>
         <span style="font-size: 0.8rem; color: var(--primary-accent);">Updates as you type</span>
       </div>
 
       <!-- Embedded Mini Display Screen Mirror -->
       <div class="preview-screen-wrapper">
-        <div class="display-screen" style="transform: scale(1); transform-origin: top left; width: 100%; height: 100%; position: relative;">
-          
+        <div class="display-screen"
+          style="transform: scale(1); transform-origin: top left; width: 100%; height: 100%; position: relative;">
+
           <!-- Mini Glassy Header -->
           <div class="display-header" style="padding: 0.6rem 1rem;">
             <div class="display-brand">
-              <img src="assets/logo.png" class="display-crest" style="width: 28px; height: 28px; object-fit: contain;" />
+              <img src="assets/logo.png" class="display-crest"
+                style="width: 28px; height: 28px; object-fit: contain;" />
               <div>
-                <div class="display-institution" style="font-size: 0.55rem;">SHREE L.R TIWARI COLLEGE OF ENGINEERING</div>
+                <div class="display-institution" style="font-size: 0.55rem;">SHREE L.R TIWARI COLLEGE OF ENGINEERING
+                </div>
                 <div class="display-subtitle" style="font-size: 0.75rem;">LIVE NOTICE BOARD</div>
               </div>
             </div>
@@ -210,9 +224,12 @@
                 <img id="prevImageBgBlur" src="" class="slideshow-bg-blur" style="display: none;" />
                 <img id="prevImage" src="" class="slideshow-image" style="display: none;" />
                 <div id="prevTextOnlyFallback" style="display: none; text-align: center; padding: 1.5rem;">
-                  <img src="assets/logo.png" style="width: 50px; height: 50px; opacity: 0.85; object-fit: contain; margin-bottom: 0.5rem;" />
-                  <div id="prevTitleOnly" style="font-size: 1.2rem; font-weight: 700; color: var(--primary-accent);"></div>
-                  <div id="prevBodyOnly" style="font-size: 0.85rem; color: var(--text-main); margin-top: 0.25rem;"></div>
+                  <img src="assets/logo.png"
+                    style="width: 50px; height: 50px; opacity: 0.85; object-fit: contain; margin-bottom: 0.5rem;" />
+                  <div id="prevTitleOnly" style="font-size: 1.2rem; font-weight: 700; color: var(--primary-accent);">
+                  </div>
+                  <div id="prevBodyOnly" style="font-size: 0.85rem; color: var(--text-main); margin-top: 0.25rem;">
+                  </div>
                 </div>
               </div>
             </div>
@@ -232,11 +249,6 @@
             </div>
           </div>
 
-          <!-- Powered By Watermark -->
-          <div class="display-powered-by" style="font-size: 0.55rem; padding: 0.15rem 0.5rem; bottom: 0.35rem; right: 0.5rem;">
-            - Powered by Shreyash Chaturvedi
-          </div>
-
         </div>
       </div>
     </section>
@@ -245,4 +257,5 @@
 
   <script type="module" src="js/admin.js"></script>
 </body>
+
 </html>
