@@ -97,9 +97,9 @@ function renderNoticeBoard(data) {
     // Repeat text string to ensure continuous loop
     tickerTrack.textContent = `${fullText}          ${fullText}          ${fullText}`;
 
-    // Adjust marquee animation duration dynamically based on text length
+    // Adjust marquee animation duration dynamically for slow, smooth reading speed
     const charCount = fullText.length;
-    const duration = Math.max(16, Math.min(50, charCount * 0.28));
+    const duration = Math.max(45, Math.min(160, charCount * 0.75));
     tickerTrack.style.animationDuration = `${duration}s`;
   } else {
     // No text notice provided -> Hide ticker bar completely
@@ -112,11 +112,11 @@ function renderNoticeBoard(data) {
   } else {
     stopSlideshow();
     slideshowContainer.innerHTML = `
-      <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; text-align:center; padding:2rem;">
-        <div>
-          <img src="assets/logo.png" style="width:100px; height:100px; object-fit:contain; opacity:0.85; margin-bottom:1rem; filter: drop-shadow(0 4px 12px rgba(153, 0, 0, 0.2));" />
-          <h2 style="font-size:2rem; color:var(--primary-accent); font-weight:800;">${titleText || 'Official Notice'}</h2>
-          <p style="font-size:1.2rem; color:var(--text-main); margin-top:0.75rem; max-width:700px; line-height:1.6;">${bodyText}</p>
+      <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; text-align:center; padding:3rem 2rem; background:#ffffff;">
+        <div style="max-width:920px;">
+          <img src="assets/logo.png" style="width:130px; height:130px; object-fit:contain; opacity:0.95; margin-bottom:1.5rem; filter: drop-shadow(0 6px 16px rgba(153, 0, 0, 0.25));" />
+          <h2 style="font-size:3.2rem; color:var(--primary-accent); font-weight:800; line-height:1.2; margin-bottom:1.25rem;">${titleText || 'Official Notice'}</h2>
+          <p style="font-size:1.85rem; color:#0f172a; font-weight:600; line-height:1.6; max-width:900px; margin:0 auto;">${bodyText}</p>
         </div>
       </div>
     `;

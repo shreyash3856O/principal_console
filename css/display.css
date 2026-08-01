@@ -120,7 +120,7 @@
 /* Main Display Content Area */
 .display-content {
   flex: 1;
-  padding: 1.5rem 2rem;
+  padding: 0.35rem 0.75rem;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -132,11 +132,11 @@
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  border: 2px solid rgba(153, 0, 0, 0.15);
+  border: 2px solid rgba(153, 0, 0, 0.18);
   background: #ffffff;
-  box-shadow: 0 20px 50px rgba(153, 0, 0, 0.1);
+  box-shadow: 0 15px 40px rgba(153, 0, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -225,41 +225,41 @@
 
 /* News Channel Ticker Banner */
 .ticker-bar {
-  background: linear-gradient(90deg, #800000, #990000, #b91c1c);
+  background: linear-gradient(90deg, #700000, #990000, #b91c1c);
   color: #ffffff;
   display: flex;
   align-items: center;
-  height: 52px;
+  height: 64px;
   overflow: hidden;
-  box-shadow: 0 -4px 20px rgba(153, 0, 0, 0.25);
+  box-shadow: 0 -4px 25px rgba(153, 0, 0, 0.3);
   position: relative;
   z-index: 40;
-  border-top: 2px solid #ef4444;
+  border-top: 3px solid #ef4444;
 }
 
 .ticker-badge {
-  background: #660000;
-  padding: 0 1.5rem;
+  background: #5c0000;
+  padding: 0 1.75rem;
   height: 100%;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.75rem;
   font-family: var(--font-heading);
   font-weight: 800;
-  font-size: 0.95rem;
-  letter-spacing: 0.1em;
+  font-size: 1.15rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  box-shadow: 4px 0 15px rgba(0,0,0,0.25);
+  box-shadow: 4px 0 15px rgba(0,0,0,0.3);
   z-index: 10;
   white-space: nowrap;
 }
 
 .ticker-dot {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background-color: #fef08a;
-  box-shadow: 0 0 10px #fef08a;
+  box-shadow: 0 0 12px #fef08a;
   animation: pulse-dot 1.2s infinite;
 }
 
@@ -276,13 +276,13 @@
   display: inline-block;
   white-space: nowrap;
   padding-left: 100%;
-  animation: newsTickerLeftToRight 24s linear infinite;
+  animation: newsTickerLeftToRight 55s linear infinite;
   font-family: var(--font-heading);
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
   color: #ffffff;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 @keyframes newsTickerLeftToRight {
@@ -303,17 +303,17 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 4rem 2rem;
+  padding: 3rem 2rem;
   background: #ffffff;
   border: 2px dashed rgba(153, 0, 0, 0.25);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 20px 40px rgba(153, 0, 0, 0.08);
-  margin: auto 0;
+  border-radius: var(--radius-md);
+  box-shadow: 0 15px 40px rgba(153, 0, 0, 0.08);
+  margin: 0;
 }
 
 .empty-crest {
-  width: 130px;
-  height: 130px;
+  width: 140px;
+  height: 140px;
   object-fit: contain;
   opacity: 1;
   filter: drop-shadow(0 6px 16px rgba(153, 0, 0, 0.2));
@@ -321,16 +321,19 @@
 }
 
 .empty-title {
-  font-size: 2.2rem;
+  font-size: 3rem;
   color: #990000;
   font-weight: 800;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
 }
 
 .empty-subtitle {
-  font-size: 1.1rem;
-  color: #475569;
-  max-width: 540px;
+  font-size: 1.5rem;
+  color: #334155;
+  max-width: 750px;
+  font-weight: 500;
+  line-height: 1.6;
 }
 
 /* Status Indicator Footer Overlay */
@@ -350,4 +353,26 @@
   border-radius: var(--radius-full);
   border: 1px solid rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(8px);
+}
+
+/* Powered By Watermark Overlay (Bottom Right) */
+.display-powered-by {
+  position: absolute;
+  bottom: 0.65rem;
+  right: 1.25rem;
+  z-index: 150;
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(122, 0, 0, 0.9), rgba(153, 0, 0, 0.95));
+  padding: 0.35rem 0.95rem;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  letter-spacing: 0.03em;
+  pointer-events: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
 }
