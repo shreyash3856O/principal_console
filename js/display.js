@@ -149,6 +149,15 @@ function setupSlideshow(images, container, dotsContainer) {
     mainImg.className = 'slideshow-image';
     mainImg.alt = `Notice board image ${idx + 1}`;
 
+    // Detect landscape vs portrait once the image loads
+    mainImg.onload = () => {
+      if (mainImg.naturalWidth >= mainImg.naturalHeight) {
+        slideItem.classList.add('is-landscape');
+      } else {
+        slideItem.classList.add('is-portrait');
+      }
+    };
+
     slideItem.appendChild(bgBlur);
     slideItem.appendChild(mainImg);
     container.appendChild(slideItem);

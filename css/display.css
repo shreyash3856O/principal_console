@@ -35,6 +35,7 @@
   background: linear-gradient(135deg, #660000, #800000, #a81c1c);
   border-bottom: 3px solid #4a0000;
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+  padding: 0.55rem 2rem;
 }
 
 .display-brand {
@@ -120,23 +121,24 @@
 /* Main Display Content Area */
 .display-content {
   flex: 1;
-  padding: 0.35rem 0.75rem;
+  padding: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   position: relative;
+  background: #0f172a;
 }
 
-/* Landscape Slideshow Card Frame — Bright Executive White */
+/* Landscape Slideshow Card Frame — Full Edge-to-Edge Canvas */
 .slideshow-card {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: var(--radius-md);
+  border-radius: 0;
   overflow: hidden;
-  border: 2px solid rgba(153, 0, 0, 0.18);
-  background: #ffffff;
-  box-shadow: 0 15px 40px rgba(153, 0, 0, 0.1);
+  border: none;
+  background: #0f172a;
+  box-shadow: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -147,6 +149,7 @@
   height: 100%;
   position: relative;
   overflow: hidden;
+  background: #0f172a;
 }
 
 /* Slide Item Wrapper */
@@ -161,35 +164,44 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  background: #0f172a;
 }
 
 .slide-item.active {
   opacity: 1;
 }
 
-/* Foreground Main Image */
+/* Foreground Main Image — Maximum Size, Zero Distortion */
 .slideshow-image {
   position: relative;
   z-index: 2;
-  max-width: 100%;
-  max-height: 100%;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  filter: drop-shadow(0 10px 30px rgba(153, 0, 0, 0.15));
-}
-
-/* Background Blurred Image Backdrop */
-.slideshow-bg-blur {
-  position: absolute;
-  inset: 0;
   width: 100%;
   height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Background Blurred Image Backdrop — Rich Ambient Fill */
+.slideshow-bg-blur {
+  position: absolute;
+  inset: -60px;
+  width: calc(100% + 120px);
+  height: calc(100% + 120px);
   object-fit: cover;
-  filter: blur(40px) brightness(0.95);
-  opacity: 0.2;
+  filter: blur(25px) brightness(0.92) saturate(140%);
+  opacity: 1;
   transform: scale(1.15);
   z-index: 1;
+}
+
+/* Landscape images: tighter blur for near-seamless look */
+.slide-item.is-landscape .slideshow-bg-blur {
+  filter: blur(18px) brightness(0.95) saturate(150%);
+}
+
+/* Portrait images: heavier blur so sides don't distract */
+.slide-item.is-portrait .slideshow-bg-blur {
+  filter: blur(35px) brightness(0.75) saturate(120%);
 }
 
 /* Slideshow Indicators Dots */
