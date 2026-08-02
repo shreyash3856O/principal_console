@@ -242,10 +242,12 @@ function setupFullscreenToggle() {
 
   // Update button text and glassy header class on fullscreen change
   const updateFullscreenUI = () => {
-    const isFS = !!getFullscreenElement();
+    const isFS = !!getFullscreenElement() || (window.innerHeight >= screen.height - 10) || window.matchMedia('(display-mode: fullscreen)').matches;
     if (displayScreen) {
       displayScreen.classList.toggle('is-fullscreen', isFS);
     }
+    document.documentElement.classList.toggle('is-fullscreen', isFS);
+    document.body.classList.toggle('is-fullscreen', isFS);
 
     if (isFS) {
       fullscreenBtn.innerHTML = '<span>⤓</span> Exit Fullscreen';
@@ -256,7 +258,9 @@ function setupFullscreenToggle() {
     }
   };
 
-  ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(evt => {
+  ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange', 'resize'].forEach(evt => {
     document.addEventListener(evt, updateFullscreenUI);
+    window.addEventListener(evt, updateFullscreenUI);
   });
+  updateFullscreenUI();
 }
