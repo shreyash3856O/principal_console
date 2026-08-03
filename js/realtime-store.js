@@ -12,6 +12,7 @@ import {
   getFirestore, 
   doc, 
   setDoc, 
+  getDoc,
   onSnapshot 
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
@@ -102,9 +103,38 @@ export function subscribeToBoard(callback) {
     
     firebaseUnsub = onSnapshot(
       docRef,
-      (docSnap) => {
+      async (docSnap) => {
         if (docSnap.exists()) {
-          const data = docSnap.data();
+          let data = docSnap.data();
+          
+          // Reconstruct any chunked media items from Firestore subcollection
+          if (Array.isArray(data.images) && data.images.some(img => img && img.isChunked)) {
+            try {
+              const reconstructedImages = [];
+              for (let i = 0; i < data.images.length; i++) {
+                const imgItem = data.images[i];
+                if (imgItem && imgItem.isChunked) {
+                  const chunkPromises = [];
+                  for (let c = 0; c < imgItem.totalChunks; c++) {
+                    const chunkRef = doc(db, COLLECTION_NAME, DOC_ID, 'chunks', `${imgItem.chunkPrefix}${c}`);
+                    chunkPromises.push(getDoc(chunkRef));
+                  }
+                  const chunkSnaps = await Promise.all(chunkPromises);
+                  let fullMediaStr = '';
+                  chunkSnaps.forEach(cSnap => {
+                    if (cSnap.exists()) fullMediaStr += (cSnap.data().data || '');
+                  });
+                  reconstructedImages.push(fullMediaStr);
+                } else {
+                  reconstructedImages.push(imgItem);
+                }
+              }
+              data.images = reconstructedImages;
+            } catch (err) {
+              console.error('Failed to reconstruct chunked media:', err);
+            }
+          }
+
           setLocalStateDB(data);
           callback(data, { source: 'firebase', isOnline: true });
         } else {
@@ -160,18 +190,41 @@ export async function updateBoard(boardData) {
 
   if (isFirebaseActive && db) {
     try {
-      const payloadString = JSON.stringify(payload);
-      const payloadBytes = new Blob([payloadString]).size;
-      const sizeKB = Math.round(payloadBytes / 1024);
+      window.dispatchEvent(new CustomEvent('cloud-upload-start'));
+      
+      const firestoreImages = [];
+      const now = Date.now();
+      const chunkSize = 500000; // 500KB per Firestore document
 
-      if (payloadBytes > 950000) {
-        throw new Error(`Cloud payload size is ${sizeKB}KB (exceeds Firestore 1MB free limit). Please remove large video files or use photos for Cloud Sync.`);
+      for (let i = 0; i < payload.images.length; i++) {
+        const item = payload.images[i];
+        if (typeof item === 'string' && item.length > chunkSize) {
+          const totalChunks = Math.ceil(item.length / chunkSize);
+          const chunkWrites = [];
+
+          for (let c = 0; c < totalChunks; c++) {
+            const chunkStr = item.substring(c * chunkSize, (c + 1) * chunkSize);
+            const chunkRef = doc(db, COLLECTION_NAME, DOC_ID, 'chunks', `m${now}_${i}_c${c}`);
+            chunkWrites.push(setDoc(chunkRef, { data: chunkStr }));
+          }
+
+          await Promise.all(chunkWrites);
+
+          firestoreImages.push({
+            isChunked: true,
+            chunkPrefix: `m${now}_${i}_c`,
+            totalChunks
+          });
+        } else {
+          firestoreImages.push(item);
+        }
       }
 
-      window.dispatchEvent(new CustomEvent('cloud-upload-start'));
+      const firestorePayload = { ...payload, images: firestoreImages };
       const docRef = doc(db, COLLECTION_NAME, DOC_ID);
-      await setDoc(docRef, payload);
-      console.log(`🔥 Published to Firestore successfully (${sizeKB}KB)`);
+      await setDoc(docRef, firestorePayload);
+
+      console.log('🔥 Published to Firestore successfully with chunking');
       window.dispatchEvent(new CustomEvent('cloud-upload-success'));
     } catch (e) {
       console.error('❌ Firebase publish error:', e);
