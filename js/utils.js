@@ -59,7 +59,7 @@ export function showToast(message, type = 'info', duration = 4000) {
 /**
  * Compress an uploaded File/Blob to JPEG Base64 to stay well within Firestore's 1MB payload limits
  */
-export function compressImage(file, maxWidth = 1000, quality = 0.7) {
+export function compressImage(file, maxWidth = 1000, quality = 0.62) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
