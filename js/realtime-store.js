@@ -14,18 +14,11 @@ import {
   setDoc, 
   onSnapshot 
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-import { 
-  getStorage, 
-  ref as storageRef, 
-  uploadBytes, 
-  getDownloadURL 
-} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js';
 
 const COLLECTION_NAME = 'noticeboard';
 const DOC_ID = 'current';
 
 let db = null;
-let storage = null;
 let isFirebaseActive = false;
 
 const broadcastChannel = (typeof BroadcastChannel !== 'undefined')
@@ -84,7 +77,6 @@ export function initStore() {
       const cfg = getActiveFirebaseConfig();
       const app = initializeApp(cfg);
       db = getFirestore(app);
-      storage = getStorage(app);
       isFirebaseActive = true;
       console.log('⚡ Firebase Firestore Realtime Sync Connected:', cfg.projectId);
     } catch (err) {
