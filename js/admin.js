@@ -152,9 +152,11 @@ function setupFormListeners() {
       postBtn.innerHTML = '🚀 Post to Board Live';
     }, 1500);
   });
-  window.addEventListener('cloud-upload-error', () => {
+  window.addEventListener('cloud-upload-error', (e) => {
     postBtn.disabled = false;
     postBtn.innerHTML = '🚀 Post to Board Live';
+    const errMsg = (e.detail && e.detail.message) ? e.detail.message : 'Cloud upload failed';
+    showToast('❌ ' + errMsg, 'error', 7000);
   });
 
   // Post Announcement Action

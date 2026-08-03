@@ -171,7 +171,14 @@ export async function updateBoard(boardData) {
       const cloudPayload = { ...payload };
 
       if (cloudPayload.images && cloudPayload.images.length > 0) {
+
+        // Fast-fail if Storage is not initialized
+        if (!storage) {
+          throw new Error('Firebase Storage not initialized. Please re-save your Firebase config with a valid Storage Bucket URL.');
+        }
+
         window.dispatchEvent(new CustomEvent('cloud-upload-start'));
+        console.log('⬆️ Starting upload of', cloudPayload.images.length, 'files to Firebase Storage...');
 
         const uploadedImages = [];
         for (let i = 0; i < cloudPayload.images.length; i++) {
@@ -182,24 +189,33 @@ export async function updateBoard(boardData) {
             const fileExt = isVideo ? 'mp4' : 'jpg';
             const fileName = `noticeboard/media_${Date.now()}_${i}.${fileExt}`;
 
+            console.log(`⬆️ Uploading file ${i + 1}/${cloudPayload.images.length} (${fileExt}, ~${Math.round(imgSrc.length / 1024)}KB base64)...`);
+
             // Convert base64 data URL to Blob
             const res = await fetch(imgSrc);
             const blob = await res.blob();
+            console.log(`📦 Blob size: ${Math.round(blob.size / 1024)} KB`);
 
             const sRef = storageRef(storage, fileName);
 
-            // Upload with 90s timeout
+            // Upload with 15s timeout — fail fast so user sees the error
             const uploadResult = await Promise.race([
               uploadBytes(sRef, blob, { contentType: mimeType }),
               new Promise((_, reject) =>
-                setTimeout(() => reject(new Error(`Upload timed out for file ${i + 1}`)), 90000)
+                setTimeout(() => reject(new Error(
+                  `Upload timed out after 15s for file ${i + 1}. ` +
+                  `Check: (1) Firebase Storage is enabled in your project, ` +
+                  `(2) Storage rules allow writes, ` +
+                  `(3) Storage Bucket URL in Cloud Setup is correct.`
+                )), 15000)
               )
             ]);
 
             const downloadUrl = await getDownloadURL(uploadResult.ref);
             uploadedImages.push(downloadUrl);
-            console.log(`✅ Uploaded file ${i + 1}/${cloudPayload.images.length}:`, downloadUrl);
+            console.log(`✅ Uploaded file ${i + 1}:`, downloadUrl);
           } else {
+            // Already a cloud URL
             uploadedImages.push(imgSrc);
           }
         }
@@ -212,7 +228,7 @@ export async function updateBoard(boardData) {
 
       window.dispatchEvent(new CustomEvent('cloud-upload-success'));
     } catch (e) {
-      console.error('Firebase publish error:', e);
+      console.error('❌ Firebase publish error:', e.message);
       window.dispatchEvent(new CustomEvent('cloud-upload-error', { detail: e }));
       throw e;
     }
