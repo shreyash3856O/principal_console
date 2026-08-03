@@ -141,6 +141,22 @@ function setupFormListeners() {
   titleInput.addEventListener('input', updateLivePreviewFromForm);
   messageInput.addEventListener('input', updateLivePreviewFromForm);
 
+  // Cloud upload progress events
+  window.addEventListener('cloud-upload-start', () => {
+    postBtn.innerHTML = '☁️ Uploading media to cloud...';
+  });
+  window.addEventListener('cloud-upload-success', () => {
+    postBtn.innerHTML = '✅ Live on Cloud!';
+    setTimeout(() => {
+      postBtn.disabled = false;
+      postBtn.innerHTML = '🚀 Post to Board Live';
+    }, 1500);
+  });
+  window.addEventListener('cloud-upload-error', () => {
+    postBtn.disabled = false;
+    postBtn.innerHTML = '🚀 Post to Board Live';
+  });
+
   // Post Announcement Action
   postBtn.addEventListener('click', async () => {
     const title = titleInput.value.trim();
@@ -153,7 +169,7 @@ function setupFormListeners() {
     }
 
     postBtn.disabled = true;
-    postBtn.innerHTML = '⌛ Pushing Live...';
+    postBtn.innerHTML = '⌛ Saving locally...';
 
     try {
       await updateBoard({
@@ -165,11 +181,17 @@ function setupFormListeners() {
         textDuration: parseInt(document.getElementById('textDurationSelect').value, 10)
       });
 
-      showToast('Posted! The display board updated instantly.', 'success');
+      // If no cloud upload was needed (text/no media), reset button manually
+      if (postBtn.innerHTML === '⌛ Saving locally...') {
+        showToast('Posted! The display board updated instantly.', 'success');
+        postBtn.disabled = false;
+        postBtn.innerHTML = '🚀 Post to Board Live';
+      } else {
+        showToast('Posted! Media uploading to cloud...', 'success', 3000);
+      }
     } catch (err) {
       console.error('Post error:', err);
       showToast('Failed to post announcement: ' + (err.message || 'Unknown error'), 'error');
-    } finally {
       postBtn.disabled = false;
       postBtn.innerHTML = '🚀 Post to Board Live';
     }

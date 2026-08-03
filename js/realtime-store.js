@@ -14,11 +14,18 @@ import {
   setDoc, 
   onSnapshot 
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import { 
+  getStorage, 
+  ref as storageRef, 
+  uploadString, 
+  getDownloadURL 
+} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js';
 
 const COLLECTION_NAME = 'noticeboard';
 const DOC_ID = 'current';
 
 let db = null;
+let storage = null;
 let isFirebaseActive = false;
 
 const broadcastChannel = (typeof BroadcastChannel !== 'undefined')
@@ -77,6 +84,7 @@ export function initStore() {
       const cfg = getActiveFirebaseConfig();
       const app = initializeApp(cfg);
       db = getFirestore(app);
+      storage = getStorage(app);
       isFirebaseActive = true;
       console.log('⚡ Firebase Firestore Realtime Sync Connected:', cfg.projectId);
     } catch (err) {
@@ -160,11 +168,43 @@ export async function updateBoard(boardData) {
 
   if (isFirebaseActive && db) {
     try {
+      // Intercept and upload large Base64 files to Firebase Storage
+      const cloudPayload = { ...payload };
+      if (cloudPayload.images && cloudPayload.images.length > 0) {
+        if (typeof window !== 'undefined' && window.dispatchEvent) {
+          window.dispatchEvent(new CustomEvent('cloud-upload-start'));
+        }
+        
+        const uploadedImages = [];
+        for (let i = 0; i < cloudPayload.images.length; i++) {
+          const imgSrc = cloudPayload.images[i];
+          if (imgSrc.startsWith('data:')) {
+            const fileExt = imgSrc.startsWith('data:video/') ? 'mp4' : 'jpg';
+            const sRef = storageRef(storage, `noticeboard/media_${Date.now()}_${i}.${fileExt}`);
+            await uploadString(sRef, imgSrc, 'data_url');
+            const downloadUrl = await getDownloadURL(sRef);
+            uploadedImages.push(downloadUrl);
+          } else {
+            // Already a URL
+            uploadedImages.push(imgSrc);
+          }
+        }
+        cloudPayload.images = uploadedImages;
+      }
+
       const docRef = doc(db, COLLECTION_NAME, DOC_ID);
-      await setDoc(docRef, payload);
+      await setDoc(docRef, cloudPayload);
       console.log('🔥 Published to Firebase Firestore successfully');
+      
+      if (typeof window !== 'undefined' && window.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent('cloud-upload-success'));
+      }
     } catch (e) {
       console.error('Firebase publish error:', e);
+      if (typeof window !== 'undefined' && window.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent('cloud-upload-error', { detail: e }));
+      }
+      throw e; // Rethrow so admin.js catches it and shows error toast
     }
   }
 
