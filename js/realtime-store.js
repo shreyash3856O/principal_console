@@ -228,9 +228,13 @@ export async function updateBoard(boardData) {
 
       window.dispatchEvent(new CustomEvent('cloud-upload-success'));
     } catch (e) {
-      console.error('❌ Firebase publish error:', e.message);
-      window.dispatchEvent(new CustomEvent('cloud-upload-error', { detail: e }));
-      throw e;
+      console.error('❌ Firebase publish error:', e);
+      let friendlyError = e;
+      if (e && (e.code === 'permission-denied' || e.code === 'storage/unauthorized' || (e.message && e.message.includes('permission')))) {
+        friendlyError = new Error('Permission Denied! Please update your Firebase Rules in Console for BOTH Firestore & Storage to "allow read, write: if true;"');
+      }
+      window.dispatchEvent(new CustomEvent('cloud-upload-error', { detail: friendlyError }));
+      throw friendlyError;
     }
   }
 
