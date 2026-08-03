@@ -25,6 +25,49 @@ const broadcastChannel = (typeof BroadcastChannel !== 'undefined')
   ? new BroadcastChannel('principal_notice_board_channel')
   : null;
 
+const DB_NAME = 'NoticeBoardDB';
+const STORE_NAME = 'board_store';
+
+function initDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = (e) => {
+      e.target.result.createObjectStore(STORE_NAME);
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function setLocalStateDB(data) {
+  try {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).put(data, 'current_board');
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (e) {
+    console.warn("IndexedDB save failed, falling back to localStorage", e);
+    localStorage.setItem('principal_board_data', JSON.stringify(data));
+  }
+}
+
+async function getLocalStateDB() {
+  try {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const req = tx.objectStore(STORE_NAME).get('current_board');
+      req.onsuccess = () => resolve(req.result || getEmptyState());
+      req.onerror = () => resolve(getEmptyState());
+    });
+  } catch (e) {
+    return getLocalState();
+  }
+}
+
 /**
  * Initialize store
  */
@@ -62,7 +105,7 @@ export function subscribeToBoard(callback) {
       (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
-          localStorage.setItem('principal_board_data', JSON.stringify(data));
+          setLocalStateDB(data);
           callback(data, { source: 'firebase', isOnline: true });
         } else {
           callback(getEmptyState(), { source: 'firebase', isOnline: true });
@@ -75,8 +118,9 @@ export function subscribeToBoard(callback) {
     );
   } else {
     // Local / BroadcastChannel Mode
-    const initialData = getLocalState();
-    callback(initialData, { source: 'local', isOnline: false });
+    getLocalStateDB().then(initialData => {
+      callback(initialData, { source: 'local', isOnline: false });
+    });
 
     const channelHandler = (event) => {
       if (event.data) {
@@ -85,19 +129,8 @@ export function subscribeToBoard(callback) {
     };
     if (broadcastChannel) broadcastChannel.addEventListener('message', channelHandler);
 
-    const storageHandler = (e) => {
-      if (e.key === 'principal_board_data' && e.newValue) {
-        try {
-          const data = JSON.parse(e.newValue);
-          callback(data, { source: 'local', isOnline: false });
-        } catch (err) {}
-      }
-    };
-    window.addEventListener('storage', storageHandler);
-
     return () => {
       if (broadcastChannel) broadcastChannel.removeEventListener('message', channelHandler);
-      window.removeEventListener('storage', storageHandler);
     };
   }
 
@@ -114,12 +147,15 @@ export async function updateBoard(boardData) {
     title: boardData.title || '',
     message: boardData.message || '',
     images: boardData.images || [],
+    imageDuration: boardData.imageDuration || 5,
+    videoLoops: boardData.videoLoops || 1,
+    textDuration: boardData.textDuration !== undefined ? boardData.textDuration : 0,
     active: true,
     updatedAt: Date.now(),
     postedAtReadable: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   };
 
-  localStorage.setItem('principal_board_data', JSON.stringify(payload));
+  await setLocalStateDB(payload);
   if (broadcastChannel) broadcastChannel.postMessage(payload);
 
   if (isFirebaseActive && db) {
@@ -143,12 +179,15 @@ export async function clearBoard() {
     title: '',
     message: '',
     images: [],
+    imageDuration: 5,
+    videoLoops: 1,
+    textDuration: 0,
     active: false,
     updatedAt: Date.now(),
     postedAtReadable: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   };
 
-  localStorage.setItem('principal_board_data', JSON.stringify(payload));
+  await setLocalStateDB(payload);
   if (broadcastChannel) broadcastChannel.postMessage(payload);
 
   if (isFirebaseActive && db) {

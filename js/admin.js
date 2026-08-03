@@ -159,7 +159,10 @@ function setupFormListeners() {
       await updateBoard({
         title,
         message,
-        images: currentImages
+        images: currentImages,
+        imageDuration: parseInt(document.getElementById('imageDurationSelect').value, 10),
+        videoLoops: parseInt(document.getElementById('videoLoopsSelect').value, 10),
+        textDuration: parseInt(document.getElementById('textDurationSelect').value, 10)
       });
 
       showToast('Posted! The display board updated instantly.', 'success');
@@ -202,55 +205,97 @@ function setupFormListeners() {
  * Image Upload & Drag-and-Drop Area
  */
 function setupDropzone() {
-  const dropzone = document.getElementById('imageDropzone');
-  const fileInput = document.getElementById('fileInput');
+  // Image Dropzone
+  const imageDropzone = document.getElementById('imageDropzone');
+  const imageFileInput = document.getElementById('imageFileInput');
 
-  dropzone.addEventListener('click', () => fileInput.click());
+  imageDropzone.addEventListener('click', () => imageFileInput.click());
 
   ['dragenter', 'dragover'].forEach(eventName => {
-    dropzone.addEventListener(eventName, (e) => {
+    imageDropzone.addEventListener(eventName, (e) => {
       e.preventDefault();
       e.stopPropagation();
-      dropzone.classList.add('drag-over');
+      imageDropzone.classList.add('drag-over');
     });
   });
 
   ['dragleave', 'drop'].forEach(eventName => {
-    dropzone.addEventListener(eventName, (e) => {
+    imageDropzone.addEventListener(eventName, (e) => {
       e.preventDefault();
       e.stopPropagation();
-      dropzone.classList.remove('drag-over');
+      imageDropzone.classList.remove('drag-over');
     });
   });
 
-  dropzone.addEventListener('drop', (e) => {
+  imageDropzone.addEventListener('drop', (e) => {
     const files = e.dataTransfer.files;
-    handleImageFiles(files);
+    handleFiles(files);
   });
 
-  fileInput.addEventListener('change', (e) => {
-    handleImageFiles(e.target.files);
-    fileInput.value = ''; // Reset input
+  imageFileInput.addEventListener('change', (e) => {
+    handleFiles(e.target.files);
+    imageFileInput.value = ''; 
+  });
+
+  // Video Dropzone
+  const videoDropzone = document.getElementById('videoDropzone');
+  const videoFileInput = document.getElementById('videoFileInput');
+
+  videoDropzone.addEventListener('click', () => videoFileInput.click());
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    videoDropzone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      videoDropzone.classList.add('drag-over');
+    });
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    videoDropzone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      videoDropzone.classList.remove('drag-over');
+    });
+  });
+
+  videoDropzone.addEventListener('drop', (e) => {
+    const files = e.dataTransfer.files;
+    handleFiles(files);
+  });
+
+  videoFileInput.addEventListener('change', (e) => {
+    handleFiles(e.target.files);
+    videoFileInput.value = ''; 
   });
 }
 
-async function handleImageFiles(files) {
-  const validFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+async function handleFiles(files) {
+  const validFiles = Array.from(files).filter(f => f.type.startsWith('image/') || f.type === 'video/mp4');
   if (validFiles.length === 0) {
-    showToast('Please select valid image files (JPG, PNG, WebP).', 'error');
+    showToast('Please select valid files (JPG, PNG, WebP, MP4).', 'error');
     return;
   }
 
-  showToast(`Processing ${validFiles.length} image(s)...`, 'info', 2000);
+  showToast(`Processing ${validFiles.length} file(s)...`, 'info', 2000);
 
   for (const file of validFiles) {
     try {
-      // Compress client side to base64
-      const compressedBase64 = await compressImage(file, 1280, 0.82);
-      currentImages.push(compressedBase64);
+      if (file.type.startsWith('image/')) {
+        const compressedBase64 = await compressImage(file, 1280, 0.82);
+        currentImages.push(compressedBase64);
+      } else if (file.type === 'video/mp4') {
+        const reader = new FileReader();
+        const base64 = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        currentImages.push(base64);
+      }
     } catch (err) {
-      console.error('Image processing error:', err);
-      showToast(`Failed to process image: ${file.name}`, 'error');
+      console.error('File processing error:', err);
+      showToast(`Failed to process file: ${file.name}`, 'error');
     }
   }
 
@@ -265,9 +310,15 @@ function renderImagePreviews() {
   currentImages.forEach((imgSrc, idx) => {
     const thumb = document.createElement('div');
     thumb.className = 'preview-thumb';
+    
+    const isVideo = imgSrc.startsWith('data:video/');
+    const mediaHTML = isVideo 
+      ? `<video src="${imgSrc}" style="width: 100%; height: 100%; object-fit: cover;" muted></video>`
+      : `<img src="${imgSrc}" alt="Upload preview ${idx + 1}" />`;
+
     thumb.innerHTML = `
-      <img src="${imgSrc}" alt="Upload preview ${idx + 1}" />
-      <button type="button" class="remove-thumb-btn" title="Remove image">&times;</button>
+      ${mediaHTML}
+      <button type="button" class="remove-thumb-btn" title="Remove media">&times;</button>
     `;
 
     thumb.querySelector('.remove-thumb-btn').addEventListener('click', (e) => {
@@ -298,6 +349,15 @@ function setupRealtimePreview() {
         currentImages = [...boardData.images];
         renderImagePreviews();
       }
+      if (boardData.imageDuration) {
+        document.getElementById('imageDurationSelect').value = boardData.imageDuration;
+      }
+      if (boardData.videoLoops !== undefined) {
+        document.getElementById('videoLoopsSelect').value = boardData.videoLoops;
+      }
+      if (boardData.textDuration !== undefined) {
+        document.getElementById('textDurationSelect').value = boardData.textDuration;
+      }
       updateLivePreviewFromForm();
     }
   });
@@ -309,8 +369,7 @@ function updateLivePreviewFromForm() {
 
   const previewEmpty = document.getElementById('prevEmptyState');
   const previewContent = document.getElementById('prevActiveContent');
-  const previewImage = document.getElementById('prevImage');
-  const previewImageBgBlur = document.getElementById('prevImageBgBlur');
+  const prevMediaWrapper = document.getElementById('prevMediaWrapper');
   const previewTextOnlyFallback = document.getElementById('prevTextOnlyFallback');
   const previewTitleOnly = document.getElementById('prevTitleOnly');
   const previewBodyOnly = document.getElementById('prevBodyOnly');
@@ -341,15 +400,24 @@ function updateLivePreviewFromForm() {
 
     // 2. Main Landscape Image Canvas Preview
     if (hasImages) {
-      previewImage.style.display = 'block';
-      previewImageBgBlur.style.display = 'block';
+      prevMediaWrapper.style.display = 'block';
       previewTextOnlyFallback.style.display = 'none';
 
-      previewImage.src = currentImages[0];
-      previewImageBgBlur.src = currentImages[0];
+      const imgSrc = currentImages[0];
+      const isVideo = imgSrc.startsWith('data:video/');
+      if (isVideo) {
+        prevMediaWrapper.innerHTML = `
+          <video src="${imgSrc}" class="slideshow-bg-blur" autoplay muted loop style="display:block;"></video>
+          <video src="${imgSrc}" class="slideshow-image" autoplay muted loop style="display:block;"></video>
+        `;
+      } else {
+        prevMediaWrapper.innerHTML = `
+          <img src="${imgSrc}" class="slideshow-bg-blur" style="display:block;" />
+          <img src="${imgSrc}" class="slideshow-image" style="display:block;" />
+        `;
+      }
     } else {
-      previewImage.style.display = 'none';
-      previewImageBgBlur.style.display = 'none';
+      prevMediaWrapper.style.display = 'none';
       previewTextOnlyFallback.style.display = 'block';
 
       previewTitleOnly.textContent = title || 'Official Announcement';

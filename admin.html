@@ -157,17 +157,67 @@
           placeholder="Enter message to scroll across news banner on TV display..."></textarea>
       </div>
 
+      <!-- Text Duration Dropdown -->
+      <div class="form-group">
+        <label for="textDurationSelect" class="form-label">Text Slideshow Duration</label>
+        <select id="textDurationSelect" class="form-input">
+           <option value="5">5 Seconds</option>
+           <option value="15">15 Seconds</option>
+           <option value="30">30 Seconds</option>
+           <option value="0">0 Seconds (Ticker Only)</option>
+        </select>
+      </div>
+
+      <!-- Image Duration Dropdown -->
+      <div class="form-group">
+        <label for="imageDurationSelect" class="form-label">Image Display Duration</label>
+        <select id="imageDurationSelect" class="form-input">
+           <option value="5">5 Seconds</option>
+           <option value="15">15 Seconds</option>
+           <option value="30">30 Seconds</option>
+           <option value="60">1 Minute</option>
+           <option value="120">2 Minutes</option>
+           <option value="300">5 Minutes</option>
+        </select>
+      </div>
+
+      <!-- Video Loops Dropdown -->
+      <div class="form-group">
+        <label for="videoLoopsSelect" class="form-label">Video Playback Loops</label>
+        <select id="videoLoopsSelect" class="form-input">
+           <option value="1">Play Once (1 loop)</option>
+           <option value="2">Play Twice (2 loops)</option>
+           <option value="3">Play 3 Times (3 loops)</option>
+           <option value="5">Play 5 Times (5 loops)</option>
+           <option value="10">Play 10 Times (10 loops)</option>
+        </select>
+      </div>
+
       <!-- Image Drag and Drop Area -->
       <div class="form-group">
-        <label class="form-label">Attached Photos / Slideshow Images</label>
+        <label class="form-label">Attached Photos</label>
         <div id="imageDropzone" class="dropzone">
           <div class="dropzone-icon">📷</div>
           <div class="dropzone-text"><strong>Drag & Drop images here</strong> or click to browse</div>
           <div class="dropzone-hint">Supports multiple images (JPG, PNG, WebP). Displays in Full Landscape Mode.</div>
-          <input type="file" id="fileInput" multiple accept="image/*" style="display: none;" />
+          <input type="file" id="imageFileInput" multiple accept="image/*" style="display: none;" />
         </div>
+      </div>
 
-        <!-- Thumbnail Previews Container -->
+      <!-- Video Drag and Drop Area -->
+      <div class="form-group">
+        <label class="form-label">Attached Videos</label>
+        <div id="videoDropzone" class="dropzone">
+          <div class="dropzone-icon">🎥</div>
+          <div class="dropzone-text"><strong>Drag & Drop videos here</strong> or click to browse</div>
+          <div class="dropzone-hint">Supports MP4 videos. Autoplays and stays until video ends.</div>
+          <input type="file" id="videoFileInput" multiple accept="video/mp4" style="display: none;" />
+        </div>
+      </div>
+
+      <!-- Combined Thumbnail Previews Container -->
+      <div class="form-group">
+        <label class="form-label">Slideshow Order Preview</label>
         <div id="previewsGrid" class="previews-grid"></div>
       </div>
 
@@ -221,8 +271,7 @@
             <!-- Active Content View (Full Landscape Canvas) -->
             <div id="prevActiveContent" style="display: none; width: 100%; height: 100%;">
               <div id="prevImageContainer" class="slideshow-card" style="width: 100%; height: 100%;">
-                <img id="prevImageBgBlur" src="" class="slideshow-bg-blur" style="display: none;" />
-                <img id="prevImage" src="" class="slideshow-image" style="display: none;" />
+                <div id="prevMediaWrapper" style="width: 100%; height: 100%;"></div>
                 <div id="prevTextOnlyFallback" style="display: none; text-align: center; padding: 1.5rem;">
                   <img src="assets/logo.png"
                     style="width: 50px; height: 50px; opacity: 0.85; object-fit: contain; margin-bottom: 0.5rem;" />

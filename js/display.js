@@ -5,7 +5,7 @@
 import { getFormattedDateTime, formatTimestamp } from './utils.js';
 import { initStore, subscribeToBoard } from './realtime-store.js';
 
-let slideshowInterval = null;
+let slideshowTimeout = null;
 let currentSlideIndex = 0;
 let activeImages = [];
 
@@ -73,6 +73,10 @@ function renderNoticeBoard(data) {
   const hasImages = activeImages.length > 0;
   const isActive = data && data.active && (hasTextNotice || hasImages);
 
+  window.currentImageDuration = data && data.imageDuration ? data.imageDuration * 1000 : 5000;
+  window.currentVideoLoops = data && data.videoLoops ? data.videoLoops : 1;
+  window.currentTextDuration = data && data.textDuration !== undefined ? data.textDuration * 1000 : 0;
+
   if (!isActive) {
     // Show Calm Empty State
     stopSlideshow();
@@ -106,82 +110,183 @@ function renderNoticeBoard(data) {
     if (tickerBar) tickerBar.style.display = 'none';
   }
 
-  // 2. Image Slideshow Handling (Full Landscape Display)
-  if (hasImages) {
-    setupSlideshow(activeImages, slideshowContainer, dotsContainer);
+  // 2. Build Slides List
+  const slides = [];
+  
+  if (hasTextNotice && window.currentTextDuration > 0) {
+    slides.push({
+      type: 'text',
+      title: titleText,
+      message: bodyText
+    });
+  }
+
+  activeImages.forEach(imgSrc => {
+    slides.push({
+      type: imgSrc.startsWith('data:video/') ? 'video' : 'image',
+      src: imgSrc
+    });
+  });
+
+  window.activeSlides = slides;
+
+  // 3. Slideshow Handling
+  if (slides.length > 0) {
+    setupSlideshow(slides, slideshowContainer, dotsContainer);
   } else {
     stopSlideshow();
-    slideshowContainer.innerHTML = `
-      <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; text-align:center; padding:3rem 2rem; background:#ffffff;">
-        <div style="max-width:920px;">
-          <img src="assets/logo.png" style="width:130px; height:130px; object-fit:contain; opacity:0.95; margin-bottom:1.5rem; filter: drop-shadow(0 6px 16px rgba(153, 0, 0, 0.25));" />
-          <h2 style="font-size:3.2rem; color:var(--primary-accent); font-weight:800; line-height:1.2; margin-bottom:1.25rem;">${titleText || 'Official Notice'}</h2>
-          <p style="font-size:1.85rem; color:#0f172a; font-weight:600; line-height:1.6; max-width:900px; margin:0 auto;">${bodyText}</p>
-        </div>
-      </div>
-    `;
+    if (hasTextNotice) {
+       slideshowContainer.innerHTML = `
+         <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; text-align:center; padding:3rem 2rem; background:#ffffff;">
+           <div style="max-width:920px;">
+             <img src="assets/logo.png" style="width:130px; height:130px; object-fit:contain; opacity:0.95; margin-bottom:1.5rem; filter: drop-shadow(0 6px 16px rgba(153, 0, 0, 0.25));" />
+             <h2 style="font-size:3.2rem; color:var(--primary-accent); font-weight:800; line-height:1.2; margin-bottom:1.25rem;">Official Notice Active</h2>
+             <p style="font-size:1.85rem; color:#0f172a; font-weight:600; line-height:1.6; max-width:900px; margin:0 auto;">See scrolling ticker below</p>
+           </div>
+         </div>
+       `;
+    } else {
+       slideshowContainer.innerHTML = '';
+    }
     dotsContainer.innerHTML = '';
   }
 }
 
 /**
- * Automatic Image Slideshow Engine (Landscape with Glass Backdrop Blur)
+ * Automatic Slideshow Engine
  */
-function setupSlideshow(images, container, dotsContainer) {
+function setupSlideshow(slides, container, dotsContainer) {
   stopSlideshow();
   container.innerHTML = '';
   dotsContainer.innerHTML = '';
   currentSlideIndex = 0;
 
-  images.forEach((imgSrc, idx) => {
+  slides.forEach((slide, idx) => {
     const slideItem = document.createElement('div');
     slideItem.className = `slide-item ${idx === 0 ? 'active' : ''}`;
 
-    // Background blurred image for pillarbox glass aesthetic
-    const bgBlur = document.createElement('img');
-    bgBlur.src = imgSrc;
-    bgBlur.className = 'slideshow-bg-blur';
-    bgBlur.alt = '';
+    if (slide.type === 'video') {
+      const bgBlur = document.createElement('video');
+      bgBlur.src = slide.src;
+      bgBlur.className = 'slideshow-bg-blur';
+      bgBlur.muted = true; // Background must always be muted
 
-    // Main foreground fitted image
-    const mainImg = document.createElement('img');
-    mainImg.src = imgSrc;
-    mainImg.className = 'slideshow-image';
-    mainImg.alt = `Notice board image ${idx + 1}`;
+      const mainVideo = document.createElement('video');
+      mainVideo.src = slide.src;
+      mainVideo.className = 'slideshow-image';
+      mainVideo.muted = true; // Best for autoplay without interaction
+      // Single video loops infinitely, multiple videos play once per slide
+      mainVideo.loop = (slides.length === 1); 
 
-    // Detect landscape vs portrait once the image loads
-    mainImg.onload = () => {
-      if (mainImg.naturalWidth >= mainImg.naturalHeight) {
-        slideItem.classList.add('is-landscape');
-      } else {
-        slideItem.classList.add('is-portrait');
-      }
-    };
+      mainVideo.onloadeddata = () => {
+        if (mainVideo.videoWidth >= mainVideo.videoHeight) {
+          slideItem.classList.add('is-landscape');
+        } else {
+          slideItem.classList.add('is-portrait');
+        }
+      };
 
-    slideItem.appendChild(bgBlur);
-    slideItem.appendChild(mainImg);
+      slideItem.appendChild(bgBlur);
+      slideItem.appendChild(mainVideo);
+    } else if (slide.type === 'image') {
+      const bgBlur = document.createElement('img');
+      bgBlur.src = slide.src;
+      bgBlur.className = 'slideshow-bg-blur';
+      bgBlur.alt = '';
+
+      const mainImg = document.createElement('img');
+      mainImg.src = slide.src;
+      mainImg.className = 'slideshow-image';
+      mainImg.alt = `Notice board media ${idx + 1}`;
+
+      mainImg.onload = () => {
+        if (mainImg.naturalWidth >= mainImg.naturalHeight) {
+          slideItem.classList.add('is-landscape');
+        } else {
+          slideItem.classList.add('is-portrait');
+        }
+      };
+
+      slideItem.appendChild(bgBlur);
+      slideItem.appendChild(mainImg);
+    } else if (slide.type === 'text') {
+      slideItem.classList.add('is-landscape'); // For layout
+      slideItem.innerHTML = `
+        <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; text-align:center; padding:3rem 2rem; background:#ffffff;">
+          <div style="max-width:920px;">
+            <img src="assets/logo.png" style="width:130px; height:130px; object-fit:contain; opacity:0.95; margin-bottom:1.5rem; filter: drop-shadow(0 6px 16px rgba(153, 0, 0, 0.25));" />
+            <h2 style="font-size:3.2rem; color:var(--primary-accent); font-weight:800; line-height:1.2; margin-bottom:1.25rem;">${slide.title || 'Official Notice'}</h2>
+            <p style="font-size:1.85rem; color:#0f172a; font-weight:600; line-height:1.6; max-width:900px; margin:0 auto;">${slide.message}</p>
+          </div>
+        </div>
+      `;
+    }
+
     container.appendChild(slideItem);
   });
 
-  // Handle edge case: 1 image vs multiple images
-  if (images.length === 1) {
+  if (slides.length > 1) {
+    dotsContainer.style.display = 'flex';
+    slides.forEach((_, idx) => {
+      const dot = document.createElement('div');
+      dot.className = `dot ${idx === 0 ? 'active' : ''}`;
+      dotsContainer.appendChild(dot);
+    });
+  } else {
     dotsContainer.style.display = 'none';
-    return; // Static image presentation, no rotation timer
   }
 
-  // Multiple images: Render indicator dots
-  dotsContainer.style.display = 'flex';
-  images.forEach((_, idx) => {
-    const dot = document.createElement('div');
-    dot.className = `dot ${idx === 0 ? 'active' : ''}`;
-    dotsContainer.appendChild(dot);
-  });
+  playCurrentSlide();
+}
 
-  // Start 5-second rotation timer
-  slideshowInterval = setInterval(() => {
-    currentSlideIndex = (currentSlideIndex + 1) % images.length;
-    updateSlideshowUI(container, dotsContainer, currentSlideIndex);
-  }, 5000);
+function playCurrentSlide() {
+  const container = document.getElementById('slideshowContainer');
+  const dotsContainer = document.getElementById('slideshowDots');
+  updateSlideshowUI(container, dotsContainer, currentSlideIndex);
+
+  const slideElements = container.querySelectorAll('.slide-item');
+  const currentSlide = slideElements[currentSlideIndex];
+  
+  // Pause all videos
+  container.querySelectorAll('video').forEach(v => v.pause());
+
+  // Check if current slide has a video
+  const videos = currentSlide.querySelectorAll('video');
+  if (videos.length > 0) {
+    videos.forEach(v => {
+      v.currentTime = 0;
+      v.play().catch(e => console.warn("Video play failed:", e));
+    });
+
+    if (window.activeSlides.length > 1) {
+       const mainVideo = currentSlide.querySelector('.slideshow-image');
+       let currentLoopCount = 0;
+       mainVideo.onended = () => {
+         currentLoopCount++;
+         if (currentLoopCount < (window.currentVideoLoops || 1)) {
+           mainVideo.currentTime = 0;
+           mainVideo.play().catch(e => console.warn("Video replay failed:", e));
+         } else {
+           nextSlide();
+         }
+       };
+    }
+  } else {
+    if (window.activeSlides.length > 1) {
+      let delay = 5000;
+      if (window.activeSlides[currentSlideIndex].type === 'text') {
+        delay = window.currentTextDuration || 5000;
+      } else {
+        delay = window.currentImageDuration || 5000;
+      }
+      slideshowTimeout = setTimeout(() => nextSlide(), delay);
+    }
+  }
+}
+
+function nextSlide() {
+  currentSlideIndex = (currentSlideIndex + 1) % window.activeSlides.length;
+  playCurrentSlide();
 }
 
 function updateSlideshowUI(container, dotsContainer, index) {
@@ -206,9 +311,16 @@ function updateSlideshowUI(container, dotsContainer, index) {
 }
 
 function stopSlideshow() {
-  if (slideshowInterval) {
-    clearInterval(slideshowInterval);
-    slideshowInterval = null;
+  if (slideshowTimeout) {
+    clearTimeout(slideshowTimeout);
+    slideshowTimeout = null;
+  }
+  const container = document.getElementById('slideshowContainer');
+  if (container) {
+    container.querySelectorAll('video').forEach(v => {
+      v.pause();
+      v.onended = null;
+    });
   }
 }
 
