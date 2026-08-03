@@ -36,11 +36,11 @@ export function getActiveFirebaseConfig() {
           apiKey: qApiKey,
           projectId: qProjectId,
           authDomain: urlParams.get('authDomain') || `${qProjectId}.firebaseapp.com`,
-          storageBucket: urlParams.get('storageBucket') || `${qProjectId}.appspot.com`,
+          // Support both old (.appspot.com) and new (.firebasestorage.app) bucket formats
+          storageBucket: urlParams.get('storageBucket') || `${qProjectId}.firebasestorage.app`,
           messagingSenderId: qSenderId || '123456789',
           appId: qAppId || '1:123456789:web:app'
         };
-        // Auto-save to localStorage so future visits without query params work automatically
         localStorage.setItem('custom_firebase_config', JSON.stringify(qConfig));
         return qConfig;
       }

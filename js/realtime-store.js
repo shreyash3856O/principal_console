@@ -17,7 +17,7 @@ import {
 import { 
   getStorage, 
   ref as storageRef, 
-  uploadString, 
+  uploadBytes, 
   getDownloadURL 
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js';
 
@@ -168,24 +168,38 @@ export async function updateBoard(boardData) {
 
   if (isFirebaseActive && db) {
     try {
-      // Intercept and upload large Base64 files to Firebase Storage
       const cloudPayload = { ...payload };
+
       if (cloudPayload.images && cloudPayload.images.length > 0) {
-        if (typeof window !== 'undefined' && window.dispatchEvent) {
-          window.dispatchEvent(new CustomEvent('cloud-upload-start'));
-        }
-        
+        window.dispatchEvent(new CustomEvent('cloud-upload-start'));
+
         const uploadedImages = [];
         for (let i = 0; i < cloudPayload.images.length; i++) {
           const imgSrc = cloudPayload.images[i];
           if (imgSrc.startsWith('data:')) {
-            const fileExt = imgSrc.startsWith('data:video/') ? 'mp4' : 'jpg';
-            const sRef = storageRef(storage, `noticeboard/media_${Date.now()}_${i}.${fileExt}`);
-            await uploadString(sRef, imgSrc, 'data_url');
-            const downloadUrl = await getDownloadURL(sRef);
+            const isVideo = imgSrc.startsWith('data:video/');
+            const mimeType = isVideo ? 'video/mp4' : 'image/jpeg';
+            const fileExt = isVideo ? 'mp4' : 'jpg';
+            const fileName = `noticeboard/media_${Date.now()}_${i}.${fileExt}`;
+
+            // Convert base64 data URL to Blob
+            const res = await fetch(imgSrc);
+            const blob = await res.blob();
+
+            const sRef = storageRef(storage, fileName);
+
+            // Upload with 90s timeout
+            const uploadResult = await Promise.race([
+              uploadBytes(sRef, blob, { contentType: mimeType }),
+              new Promise((_, reject) =>
+                setTimeout(() => reject(new Error(`Upload timed out for file ${i + 1}`)), 90000)
+              )
+            ]);
+
+            const downloadUrl = await getDownloadURL(uploadResult.ref);
             uploadedImages.push(downloadUrl);
+            console.log(`✅ Uploaded file ${i + 1}/${cloudPayload.images.length}:`, downloadUrl);
           } else {
-            // Already a URL
             uploadedImages.push(imgSrc);
           }
         }
@@ -195,16 +209,12 @@ export async function updateBoard(boardData) {
       const docRef = doc(db, COLLECTION_NAME, DOC_ID);
       await setDoc(docRef, cloudPayload);
       console.log('🔥 Published to Firebase Firestore successfully');
-      
-      if (typeof window !== 'undefined' && window.dispatchEvent) {
-        window.dispatchEvent(new CustomEvent('cloud-upload-success'));
-      }
+
+      window.dispatchEvent(new CustomEvent('cloud-upload-success'));
     } catch (e) {
       console.error('Firebase publish error:', e);
-      if (typeof window !== 'undefined' && window.dispatchEvent) {
-        window.dispatchEvent(new CustomEvent('cloud-upload-error', { detail: e }));
-      }
-      throw e; // Rethrow so admin.js catches it and shows error toast
+      window.dispatchEvent(new CustomEvent('cloud-upload-error', { detail: e }));
+      throw e;
     }
   }
 

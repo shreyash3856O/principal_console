@@ -488,6 +488,7 @@ function setupCloudModal() {
 
   const apiKeyInput = document.getElementById('cfgApiKey');
   const projectIdInput = document.getElementById('cfgProjectId');
+  const storageBucketInput = document.getElementById('cfgStorageBucket');
   const appIdInput = document.getElementById('cfgAppId');
   const senderIdInput = document.getElementById('cfgSenderId');
 
@@ -499,6 +500,7 @@ function setupCloudModal() {
         const cfg = JSON.parse(saved);
         if (apiKeyInput) apiKeyInput.value = cfg.apiKey || '';
         if (projectIdInput) projectIdInput.value = cfg.projectId || '';
+        if (storageBucketInput) storageBucketInput.value = cfg.storageBucket || '';
         if (appIdInput) appIdInput.value = cfg.appId || '';
         if (senderIdInput) senderIdInput.value = cfg.messagingSenderId || '';
       }
@@ -540,7 +542,9 @@ function setupCloudModal() {
         apiKey,
         projectId,
         authDomain: `${projectId}.firebaseapp.com`,
-        storageBucket: `${projectId}.appspot.com`,
+        storageBucket: storageBucketInput && storageBucketInput.value.trim()
+          ? storageBucketInput.value.trim()
+          : `${projectId}.firebasestorage.app`,
         messagingSenderId,
         appId
       };
