@@ -141,9 +141,13 @@ function setupFormListeners() {
   titleInput.addEventListener('input', updateLivePreviewFromForm);
   messageInput.addEventListener('input', updateLivePreviewFromForm);
 
-  // Cloud upload progress events
   window.addEventListener('cloud-upload-start', () => {
     postBtn.innerHTML = '☁️ Uploading media to cloud...';
+  });
+  window.addEventListener('cloud-upload-progress', (e) => {
+    const { uploaded, total } = e.detail;
+    const pct = Math.round((uploaded / total) * 100);
+    postBtn.innerHTML = `☁️ Uploading... ${pct}% (${uploaded}/${total} chunks)`;
   });
   window.addEventListener('cloud-upload-success', () => {
     postBtn.innerHTML = '✅ Live on Cloud!';

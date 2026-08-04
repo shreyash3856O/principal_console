@@ -191,24 +191,38 @@ export async function updateBoard(boardData) {
   if (isFirebaseActive && db) {
     try {
       window.dispatchEvent(new CustomEvent('cloud-upload-start'));
-      
+
       const firestoreImages = [];
       const now = Date.now();
-      const chunkSize = 500000; // 500KB per Firestore document
+      // Increased to 750 KB to reduce total chunk count for large files
+      const chunkSize = 750000;
+      // Upload at most 4 chunks concurrently to avoid exhausting the Firestore write stream
+      const BATCH_SIZE = 4;
 
       for (let i = 0; i < payload.images.length; i++) {
         const item = payload.images[i];
         if (typeof item === 'string' && item.length > chunkSize) {
           const totalChunks = Math.ceil(item.length / chunkSize);
-          const chunkWrites = [];
 
-          for (let c = 0; c < totalChunks; c++) {
-            const chunkStr = item.substring(c * chunkSize, (c + 1) * chunkSize);
-            const chunkRef = doc(db, COLLECTION_NAME, DOC_ID, 'chunks', `m${now}_${i}_c${c}`);
-            chunkWrites.push(setDoc(chunkRef, { data: chunkStr }));
+          // Upload in sequential batches of BATCH_SIZE
+          for (let batchStart = 0; batchStart < totalChunks; batchStart += BATCH_SIZE) {
+            const batchEnd = Math.min(batchStart + BATCH_SIZE, totalChunks);
+            const batchWrites = [];
+
+            for (let c = batchStart; c < batchEnd; c++) {
+              const chunkStr = item.substring(c * chunkSize, (c + 1) * chunkSize);
+              const chunkRef = doc(db, COLLECTION_NAME, DOC_ID, 'chunks', `m${now}_${i}_c${c}`);
+              batchWrites.push(setDoc(chunkRef, { data: chunkStr }));
+            }
+
+            // Wait for this batch to complete before starting the next
+            await Promise.all(batchWrites);
+
+            // Dispatch progress so admin.js can update the button label
+            window.dispatchEvent(new CustomEvent('cloud-upload-progress', {
+              detail: { uploaded: batchEnd, total: totalChunks, mediaIndex: i }
+            }));
           }
-
-          await Promise.all(chunkWrites);
 
           firestoreImages.push({
             isChunked: true,
