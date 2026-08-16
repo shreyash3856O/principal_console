@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shree L.R Tiwari College of Engineering — Admin Console</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="stylesheet" href="css/common.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <link rel="stylesheet" href="css/display.css" />
+</head>
+
+<body class="admin-body">
+
+  <!-- Passcode Auth Modal Overlay -->
+  <div id="passcodeModal" class="modal-overlay">
+    <div class="modal-card glass-panel">
+      <img src="assets/logo.png" alt="Shree L.R Tiwari College Logo"
+        style="width: 72px; height: 72px; object-fit: contain;" />
+      <div>
+        <div
+          style="font-size:0.75rem; font-weight:800; color:var(--primary-accent); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:0.25rem;">
+          Shree L.R Tiwari College of Engineering</div>
+        <h2 style="font-size: 1.4rem;">Principal's Console</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+          Enter security passcode to control the Live Notice Board.
+        </p>
+      </div>
+
+      <div style="width: 100%;">
+        <input type="password" id="passcodeInput" class="form-input passcode-input" placeholder="••••" maxlength="8"
+          autocomplete="off" />
+        <div id="passcodeError"
+          style="color: var(--status-error); font-size: 0.8rem; margin-top: 0.5rem; display: none;"></div>
+      </div>
+
+      <button id="unlockBtn" class="btn btn-primary" style="width: 100%;">
+        Unlock Console
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="admin-header">
+    <div class="brand">
+      <img src="assets/logo.png" alt="Shree L.R Tiwari College Logo" class="brand-crest" />
+      <div class="brand-titles">
+        <h1>Principal's Admin Console</h1>
+        <p>Shree L.R Tiwari College of Engineering — Realtime Control</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <span id="syncStatusBadge" class="badge badge-demo">Connecting...</span>
+      <button id="cloudSetupBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;"
+        title="Configure Cloud Sync Credentials">
+        ☁️ Cloud Setup
+      </button>
+      <button id="copyDisplayLinkBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;"
+        title="Copy auto-configuring Display URL for TV or Phone">
+        📋 Copy TV Sync Link
+      </button>
+      <button id="themeToggleBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;"
+        title="Toggle Light / Dark Mode">
+        🌙 Dark Mode
+      </button>
+      <a href="display.html" target="_blank" class="btn btn-secondary"
+        style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+        📺 Open Smart TV Display
+      </a>
+      <button id="changePasscodeBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;"
+        title="Change Passcode">
+        🔑 Passcode
+      </button>
+      <button id="lockConsoleBtn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;"
+        title="Lock Console">
+        🔒 Lock
+      </button>
+    </div>
+  </header>
+
+  <!-- Cloud Firebase Setup Modal Overlay -->
+  <div id="cloudModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card glass-panel" style="max-width: 520px; text-align: left; gap: 0.75rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <h3 style="font-size: 1.2rem; margin: 0;">🔥 Firebase Firestore Setup</h3>
+        <button id="closeCloudModalBtn"
+          style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text-main); line-height: 1;">&times;</button>
+      </div>
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
+        Paste all values from your Firebase project's web app config. Enables <strong>true real-time push</strong> from
+        your laptop directly to the TV/phone display.
+      </p>
+
+      <form id="cloudConfigForm" style="width: 100%; display: flex; flex-direction: column; gap: 0.6rem;">
+        <div>
+          <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em;">API KEY
+            *</label>
+          <input type="text" id="cfgApiKey" class="form-input" placeholder="AIzaSy..." required
+            style="font-size: 0.85rem;" />
+        </div>
+        <div>
+          <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em;">PROJECT
+            ID *</label>
+          <input type="text" id="cfgProjectId" class="form-input" placeholder="my-noticeboard-app" required
+            style="font-size: 0.85rem;" />
+        </div>
+        <div>
+          <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em;">STORAGE
+            BUCKET * <span style="font-weight:400;">(e.g. project.firebasestorage.app)</span></label>
+          <input type="text" id="cfgStorageBucket" class="form-input" placeholder="my-project.firebasestorage.app"
+            style="font-size: 0.85rem;" />
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+          <div>
+            <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em;">APP
+              ID *</label>
+            <input type="text" id="cfgAppId" class="form-input" placeholder="1:12345:web:abc..." required
+              style="font-size: 0.85rem;" />
+          </div>
+          <div>
+            <label
+              style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em;">MESSAGING
+              SENDER ID *</label>
+            <input type="text" id="cfgSenderId" class="form-input" placeholder="123456789" required
+              style="font-size: 0.85rem;" />
+          </div>
+        </div>
+        <div id="cloudSaveStatus"
+          style="font-size: 0.78rem; color: var(--status-success); display: none; padding: 0.4rem 0;"></div>
+        <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
+          <button type="submit" class="btn btn-primary" style="flex: 1; font-size: 0.9rem;">💾 Save & Connect</button>
+          <button type="button" id="clearCloudConfigBtn" class="btn btn-secondary"
+            style="font-size: 0.85rem;">Reset</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <main class="admin-container">
+
+    <!-- Left Column: Notice Creation Form -->
+    <section class="glass-panel form-card">
+      <div class="card-title">
+        <h2>📢 Post Announcement</h2>
+        <span style="font-size: 0.8rem; color: var(--text-dim);">Real-time Sync Active</span>
+      </div>
+
+      <!-- Notice Title -->
+      <div class="form-group">
+        <label for="noticeTitle" class="form-label">Notice Title (Optional if only uploading images)</label>
+        <input type="text" id="noticeTitle" class="form-input"
+          placeholder="e.g. Annual Sports Day & Morning Assembly Address" maxlength="120" />
+      </div>
+
+      <!-- Notice Message -->
+      <div class="form-group">
+        <label for="noticeMessage" class="form-label">Announcement Message (Appears on News Ticker Banner)</label>
+        <textarea id="noticeMessage" class="form-textarea"
+          placeholder="Enter message to scroll across news banner on TV display..."></textarea>
+      </div>
+
+      <!-- Text Duration Dropdown -->
+      <div class="form-group">
+        <label for="textDurationSelect" class="form-label">Text Slideshow Duration</label>
+        <select id="textDurationSelect" class="form-input">
+           <option value="5">5 Seconds</option>
+           <option value="15">15 Seconds</option>
+           <option value="30">30 Seconds</option>
+           <option value="0">0 Seconds (Ticker Only)</option>
+        </select>
+      </div>
+
+      <!-- Image Duration Dropdown -->
+      <div class="form-group">
+        <label for="imageDurationSelect" class="form-label">Image Display Duration</label>
+        <select id="imageDurationSelect" class="form-input">
+           <option value="5">5 Seconds</option>
+           <option value="15">15 Seconds</option>
+           <option value="30">30 Seconds</option>
+           <option value="60">1 Minute</option>
+           <option value="120">2 Minutes</option>
+           <option value="300">5 Minutes</option>
+        </select>
+      </div>
+
+      <!-- Video Loops Dropdown -->
+      <div class="form-group">
+        <label for="videoLoopsSelect" class="form-label">Video Playback Loops</label>
+        <select id="videoLoopsSelect" class="form-input">
+           <option value="1">Play Once (1 loop)</option>
+           <option value="2">Play Twice (2 loops)</option>
+           <option value="3">Play 3 Times (3 loops)</option>
+           <option value="5">Play 5 Times (5 loops)</option>
+           <option value="10">Play 10 Times (10 loops)</option>
+        </select>
+      </div>
+
+      <!-- Image Drag and Drop Area -->
+      <div class="form-group">
+        <label class="form-label">Attached Photos</label>
+        <div id="imageDropzone" class="dropzone">
+          <div class="dropzone-icon">📷</div>
+          <div class="dropzone-text"><strong>Drag & Drop images here</strong> or click to browse</div>
+          <div class="dropzone-hint">Supports multiple images (JPG, PNG, WebP). Displays in Full Landscape Mode.</div>
+          <input type="file" id="imageFileInput" multiple accept="image/*" style="display: none;" />
+        </div>
+      </div>
+
+      <!-- Video Drag and Drop Area -->
+      <div class="form-group">
+        <label class="form-label">Attached Videos</label>
+        <div id="videoDropzone" class="dropzone">
+          <div class="dropzone-icon">🎥</div>
+          <div class="dropzone-text"><strong>Drag & Drop videos here</strong> or click to browse</div>
+          <div class="dropzone-hint">Supports MP4 videos. Autoplays and stays until video ends.</div>
+          <input type="file" id="videoFileInput" multiple accept="video/mp4" style="display: none;" />
+        </div>
+      </div>
+
+      <!-- Combined Thumbnail Previews Container -->
+      <div class="form-group">
+        <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>Slideshow Order Preview</span>
+          <span style="font-size: 0.75rem; text-transform: none; font-weight: 500; color: var(--primary-accent);">
+            ⇄ Drag cards or use ◀ ▶ buttons to reorder
+          </span>
+        </label>
+        <div id="previewsGrid" class="previews-grid"></div>
+      </div>
+
+      <!-- Periodic Interruption Loop Settings -->
+      <div class="form-group loop-settings-box" style="background: rgba(153, 0, 0, 0.05); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: var(--radius-md); margin-top: 0.5rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <label for="enableLoopCheck" class="form-label" style="margin: 0; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--primary-accent); font-weight: 800;">
+            <input type="checkbox" id="enableLoopCheck" style="width: 18px; height: 18px; accent-color: var(--primary-accent); cursor: pointer;" />
+            🔁 Enable Periodic Interruption Loop
+          </label>
+          <span style="font-size: 0.75rem; color: var(--text-dim);">Pause video & display notice every N seconds</span>
+        </div>
+
+        <div id="loopSettingsFields" style="display: none; flex-direction: column; gap: 0.85rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border-color);">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div>
+              <label for="loopIntervalSelect" class="form-label" style="font-size: 0.75rem;">Pause Video Every</label>
+              <select id="loopIntervalSelect" class="form-input">
+                <option value="15">Every 15 Seconds</option>
+                <option value="30" selected>Every 30 Seconds</option>
+                <option value="45">Every 45 Seconds</option>
+                <option value="60">Every 1 Minute (60s)</option>
+                <option value="120">Every 2 Minutes</option>
+              </select>
+            </div>
+            <div>
+              <label for="loopDurationSelect" class="form-label" style="font-size: 0.75rem;">Show Announcement For</label>
+              <select id="loopDurationSelect" class="form-input">
+                <option value="3">3 Seconds</option>
+                <option value="5" selected>5 Seconds</option>
+                <option value="10">10 Seconds</option>
+                <option value="15">15 Seconds</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label for="loopContentTypeSelect" class="form-label" style="font-size: 0.75rem;">Loop Interruption Content</label>
+            <select id="loopContentTypeSelect" class="form-input">
+              <option value="text">Notice Title & Message Card</option>
+              <option value="image">Custom Loop Image / Flyer</option>
+            </select>
+          </div>
+
+          <!-- Dedicated Custom Loop Image Dropzone -->
+          <div id="customLoopImageGroup" style="display: none;">
+            <label class="form-label" style="font-size: 0.75rem;">Custom Loop Image / Flyer</label>
+            <div id="loopImageDropzone" class="dropzone" style="padding: 1rem; border-style: dotted;">
+              <div class="dropzone-icon" style="font-size: 1.5rem;">🖼️</div>
+              <div class="dropzone-text" style="font-size: 0.82rem;"><strong>Upload Loop Flyer / Image</strong> (Click or Drag)</div>
+              <input type="file" id="loopFileInput" accept="image/*" style="display: none;" />
+            </div>
+            <div id="loopImagePreview" style="margin-top: 0.5rem; display: none; align-items: center; gap: 0.75rem; background: var(--bg-canvas); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <img id="loopImgThumb" src="" style="width: 50px; height: 35px; object-fit: cover; border-radius: 4px;" />
+              <span id="loopImgName" style="font-size: 0.8rem; color: var(--text-main); flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">Custom Flyer Attached</span>
+              <button type="button" id="removeLoopImgBtn" class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Remove</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button id="postBtn" class="btn btn-primary">
+          🚀 Post to Board Live
+        </button>
+        <button id="clearBtn" class="btn btn-danger">
+          🧹 Clear Board
+        </button>
+      </div>
+
+    </section>
+
+    <!-- Right Column: Live Board Preview -->
+    <section class="glass-panel preview-card">
+      <div class="card-title">
+        <h2>Live Board Preview</h2>
+        <span style="font-size: 0.8rem; color: var(--primary-accent);">Updates as you type</span>
+      </div>
+
+      <!-- Embedded Mini Display Screen Mirror -->
+      <div class="preview-screen-wrapper">
+        <div class="display-screen"
+          style="transform: scale(1); transform-origin: top left; width: 100%; height: 100%; position: relative;">
+
+          <!-- Mini Glassy Header -->
+          <div class="display-header" style="padding: 0.6rem 1rem;">
+            <div class="display-brand">
+              <img src="assets/logo.png" class="display-crest"
+                style="width: 28px; height: 28px; object-fit: contain;" />
+              <div>
+                <div class="display-institution" style="font-size: 0.55rem;">SHREE L.R TIWARI COLLEGE OF ENGINEERING
+                </div>
+                <div class="display-subtitle" style="font-size: 0.75rem;">LIVE NOTICE BOARD</div>
+              </div>
+            </div>
+            <div style="font-size: 0.7rem; color: #ffe4e6;">LIVE TV VIEW</div>
+          </div>
+
+          <!-- Mini Content Area -->
+          <div class="display-content" style="padding: 0.75rem;">
+
+            <!-- Empty State View -->
+            <div id="prevEmptyState" class="empty-state" style="padding: 1.5rem 1rem; border: none; display: flex;">
+              <img src="assets/logo.png" class="empty-crest" style="width: 48px; height: 48px; object-fit: contain;" />
+              <div class="empty-title" style="font-size: 1.1rem;">No Active Announcement</div>
+              <div class="empty-subtitle" style="font-size: 0.75rem;">Upload images or type a message to preview.</div>
+            </div>
+
+            <!-- Active Content View (Full Landscape Canvas) -->
+            <div id="prevActiveContent" style="display: none; width: 100%; height: 100%;">
+              <div id="prevImageContainer" class="slideshow-card" style="width: 100%; height: 100%;">
+                <div id="prevMediaWrapper" style="width: 100%; height: 100%;"></div>
+                <div id="prevTextOnlyFallback" style="display: none; text-align: center; padding: 1.5rem;">
+                  <img src="assets/logo.png"
+                    style="width: 50px; height: 50px; opacity: 0.85; object-fit: contain; margin-bottom: 0.5rem;" />
+                  <div id="prevTitleOnly" style="font-size: 1.2rem; font-weight: 700; color: var(--primary-accent);">
+                  </div>
+                  <div id="prevBodyOnly" style="font-size: 0.85rem; color: var(--text-main); margin-top: 0.25rem;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Mini News Ticker Preview Banner -->
+          <div id="prevTickerBar" class="ticker-bar" style="display: none; height: 36px;">
+            <div class="ticker-badge" style="font-size: 0.7rem; padding: 0 0.75rem;">
+              <span class="ticker-dot" style="width: 6px; height: 6px;"></span>
+              LIVE NOTICE
+            </div>
+            <div class="ticker-wrapper">
+              <div id="prevTickerTrack" class="ticker-track" style="font-size: 0.85rem;">
+                <!-- Scrolling text preview -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module" src="js/admin.js?v=3.0"></script>
+</body>
+
+</html>

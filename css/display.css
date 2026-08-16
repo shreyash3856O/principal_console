@@ -1,0 +1,668 @@
+/* Smart Board Display Layout & Styling — Executive Red & White Theme */
+
+.display-screen {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  user-select: none;
+  background-color: #f8fafc;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(153, 0, 0, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(220, 38, 38, 0.06) 0px, transparent 50%);
+  display: flex;
+  flex-direction: column;
+  color: var(--text-main);
+  position: relative;
+}
+
+/* Glassy Executive Header Bar */
+.display-header {
+  padding: 1rem 2.5rem;
+  background: linear-gradient(135deg, #7a0000, #990000, #b91c1c);
+  color: #ffffff;
+  border-bottom: 3px solid #5c0000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 10px 30px rgba(153, 0, 0, 0.25);
+  z-index: 50;
+  transition: all var(--transition-normal);
+}
+
+:fullscreen .display-header,
+:-webkit-full-screen .display-header,
+.is-fullscreen .display-header {
+  background: linear-gradient(135deg, #660000, #800000, #a81c1c);
+  border-bottom: 3px solid #4a0000;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+  padding: 0.55rem 2rem;
+}
+
+.display-brand {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.display-crest {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.3));
+}
+
+.display-institution {
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: #fecdd3;
+  text-transform: uppercase;
+}
+
+.display-subtitle {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+/* Clock & Controls Header Right */
+.display-header-right {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.clock-box {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.clock-time {
+  font-family: var(--font-heading);
+  font-size: 2.1rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.clock-date {
+  font-size: 0.85rem;
+  color: #ffe4e6;
+  font-weight: 500;
+  margin-top: 0.2rem;
+}
+
+.fullscreen-btn {
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all var(--transition-fast);
+}
+
+.fullscreen-btn:hover {
+  background: rgba(255, 255, 255, 0.32);
+  border-color: #ffffff;
+}
+
+/* Main Display Content Area */
+.display-content {
+  flex: 1;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  background: #0f172a;
+}
+
+/* Landscape Slideshow Card Frame — Full Edge-to-Edge Canvas */
+.slideshow-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  overflow: hidden;
+  border: none;
+  background: #0f172a;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slideshow-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+/* Slide Item Wrapper */
+.slide-item {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.slide-item.active {
+  opacity: 1;
+}
+
+/* Foreground Main Image — Maximum Size, Zero Distortion */
+.slideshow-image {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Background Blurred Image Backdrop — Rich Ambient Fill */
+.slideshow-bg-blur {
+  position: absolute;
+  inset: -60px;
+  width: calc(100% + 120px);
+  height: calc(100% + 120px);
+  object-fit: cover;
+  filter: blur(25px) brightness(0.92) saturate(140%);
+  opacity: 1;
+  transform: scale(1.15);
+  z-index: 1;
+}
+
+/* Landscape images: tighter blur for near-seamless look */
+.slide-item.is-landscape .slideshow-bg-blur {
+  filter: blur(18px) brightness(0.95) saturate(150%);
+}
+
+/* Portrait images: heavier blur so sides don't distract */
+.slide-item.is-portrait .slideshow-bg-blur {
+  filter: blur(35px) brightness(0.75) saturate(120%);
+}
+
+/* Slideshow Indicators Dots */
+.slideshow-dots {
+  position: absolute;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.6rem;
+  z-index: 10;
+  padding: 0.5rem 1rem;
+  background: rgba(153, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transition: all var(--transition-fast);
+}
+
+.dot.active {
+  background: #ffffff;
+  width: 24px;
+  border-radius: var(--radius-full);
+}
+
+/* News Channel Ticker Banner */
+.ticker-bar {
+  background: linear-gradient(90deg, #700000, #990000, #b91c1c);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  height: 64px;
+  overflow: hidden;
+  box-shadow: 0 -4px 25px rgba(153, 0, 0, 0.3);
+  position: relative;
+  z-index: 40;
+  border-top: 3px solid #ef4444;
+}
+
+.ticker-badge {
+  background: #5c0000;
+  padding: 0 1.75rem;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  box-shadow: 4px 0 15px rgba(0,0,0,0.3);
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.ticker-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #fef08a;
+  box-shadow: 0 0 12px #fef08a;
+  animation: pulse-dot 1.2s infinite;
+}
+
+.ticker-wrapper {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.ticker-track {
+  display: inline-block;
+  white-space: nowrap;
+  padding-left: 100%;
+  animation: newsTickerLeftToRight 55s linear infinite;
+  font-family: var(--font-heading);
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: #ffffff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes newsTickerLeftToRight {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Empty State View — Executive Bright Red & White */
+.empty-state {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 2rem;
+  background: #ffffff;
+  border: 2px dashed rgba(153, 0, 0, 0.25);
+  border-radius: var(--radius-md);
+  box-shadow: 0 15px 40px rgba(153, 0, 0, 0.08);
+  margin: 0;
+}
+
+.empty-crest {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  opacity: 1;
+  filter: drop-shadow(0 6px 16px rgba(153, 0, 0, 0.2));
+  margin-bottom: 1.5rem;
+}
+
+.empty-title {
+  font-size: 3rem;
+  color: #990000;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
+.empty-subtitle {
+  font-size: 1.5rem;
+  color: #334155;
+  max-width: 750px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+/* Status Indicator Footer Overlay */
+.display-footer-status {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.5rem;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
+}
+
+:fullscreen #footerStatusBadge,
+:fullscreen .display-footer-status {
+  display: none !important;
+}
+
+:-webkit-full-screen #footerStatusBadge,
+:-webkit-full-screen .display-footer-status {
+  display: none !important;
+}
+
+:-moz-full-screen #footerStatusBadge,
+:-moz-full-screen .display-footer-status {
+  display: none !important;
+}
+
+.is-fullscreen #footerStatusBadge,
+.is-fullscreen .display-footer-status {
+  display: none !important;
+}
+
+@media (display-mode: fullscreen) {
+  #footerStatusBadge,
+  .display-footer-status {
+    display: none !important;
+  }
+}
+
+/* Powered By Watermark Overlay (Bottom Right - Compact & Adaptive Glass) */
+.display-powered-by {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.85rem;
+  z-index: 150;
+  font-family: var(--font-heading);
+  font-size: 0.58rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  letter-spacing: 0.03em;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  text-align: left;
+  opacity: 0.88;
+}
+
+/* ==========================================================================
+   Mobile & Responsive Adaptations (Smartphones & Tablets)
+   ========================================================================== */
+
+/* Use dynamic viewport height for mobile browser URL bar accommodation */
+@supports (height: 100dvh) {
+  .display-screen {
+    height: 100dvh;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Header Adjustments */
+  .display-header {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+  }
+
+  .display-brand {
+    gap: 0.75rem;
+  }
+
+  .display-crest {
+    width: 40px;
+    height: 40px;
+  }
+
+  .display-institution {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+  }
+
+  .display-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .display-header-right {
+    gap: 0.75rem;
+  }
+
+  .clock-time {
+    font-size: 1.3rem;
+  }
+
+  .clock-date {
+    font-size: 0.7rem;
+  }
+
+  .fullscreen-btn {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+  }
+
+  /* Ticker Bar Adjustments */
+  .ticker-bar {
+    height: 48px;
+    border-top-width: 2px;
+  }
+
+  .ticker-badge {
+    padding: 0 0.85rem;
+    font-size: 0.85rem;
+    gap: 0.5rem;
+  }
+
+  .ticker-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .ticker-track {
+    font-size: 1.25rem;
+  }
+
+  /* Empty State View */
+  .empty-state {
+    padding: 1.5rem 1rem;
+  }
+
+  .empty-crest {
+    width: 90px;
+    height: 90px;
+    margin-bottom: 1rem;
+  }
+
+  .empty-title {
+    font-size: 1.8rem;
+  }
+
+  .empty-subtitle {
+    font-size: 1.05rem;
+  }
+
+  /* Watermark & Status Badge Positioning for Small Screens */
+  .display-powered-by {
+    font-size: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    bottom: 0.35rem;
+    right: 0.5rem;
+  }
+
+  .display-footer-status {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.65rem;
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Extra Small Devices / Portrait Phones */
+  .display-header {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .display-brand {
+    gap: 0.5rem;
+  }
+
+  .display-crest {
+    width: 32px;
+    height: 32px;
+  }
+
+  .display-institution {
+    font-size: 0.58rem;
+    letter-spacing: 0.05em;
+  }
+
+  .display-subtitle {
+    font-size: 0.82rem;
+  }
+
+  .clock-time {
+    font-size: 1.1rem;
+  }
+
+  .clock-date {
+    display: none; /* Hide date on ultra-small screens to preserve header space */
+  }
+
+  .fullscreen-btn {
+    display: none; /* Native fullscreen is handled by mobile browser controls */
+  }
+
+  .ticker-bar {
+    height: 40px;
+  }
+
+  .ticker-badge {
+    padding: 0 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .ticker-track {
+    font-size: 1.05rem;
+  }
+
+  .slideshow-dots {
+    bottom: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    gap: 0.4rem;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .dot.active {
+    width: 18px;
+  }
+}
+
+/* Interruption Announcement Loop Overlay */
+.interruption-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: fadeInInterruption 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.interruption-badge {
+  position: absolute;
+  top: 2rem;
+  left: 2.5rem;
+  background: rgba(220, 38, 38, 0.9);
+  color: #ffffff;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-full);
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  box-shadow: 0 4px 20px rgba(220, 38, 38, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  z-index: 210;
+}
+
+.interruption-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 10px #ffffff;
+  animation: pulse-dot 1s infinite;
+}
+
+.interruption-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.interruption-content img {
+  max-width: 95%;
+  max-height: 90%;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+}
+
+@keyframes fadeInInterruption {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+

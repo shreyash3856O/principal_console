@@ -1,0 +1,270 @@
+/* Common Design System & Variables */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Color Palette - Shree L.R Tiwari College Red & White Theme (Light Default) */
+  --bg-dark: #f4f6f9;
+  --bg-canvas: #ffffff;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --bg-card-hover: rgba(248, 249, 252, 1);
+  --border-color: rgba(153, 0, 0, 0.15);
+  --border-color-glow: rgba(153, 0, 0, 0.35);
+  
+  --primary-accent: #990000;      /* Logo Crimson Red */
+  --primary-accent-hover: #7a0000;
+  --primary-accent-light: rgba(153, 0, 0, 0.08);
+  
+  --secondary-accent: #b91c1c;    /* Vibrant Red */
+  --secondary-accent-light: rgba(185, 28, 28, 0.1);
+  
+  --text-main: #1e293b;
+  --text-muted: #475569;
+  --text-dim: #64748b;
+  
+  --status-success: #16a34a;
+  --status-success-bg: rgba(22, 163, 74, 0.12);
+  --status-warning: #d97706;
+  --status-warning-bg: rgba(217, 119, 6, 0.12);
+  --status-error: #dc2626;
+  --status-error-bg: rgba(220, 38, 38, 0.12);
+
+  /* Font Families */
+  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Elevation & Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.92);
+  --glass-border: 1px solid rgba(153, 0, 0, 0.15);
+  --glass-shadow: 0 15px 35px -10px rgba(153, 0, 0, 0.12);
+  
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+  
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Optional Dark Mode (Admin Console & Displays) */
+[data-theme="dark"] {
+  --bg-dark: #0f0505;
+  --bg-canvas: #180808;
+  --bg-card: rgba(30, 10, 10, 0.85);
+  --bg-card-hover: rgba(45, 15, 15, 0.95);
+  --border-color: rgba(220, 38, 38, 0.25);
+  --border-color-glow: rgba(239, 68, 68, 0.5);
+  
+  --primary-accent: #dc2626;      /* Bright Red Accent for Dark Mode */
+  --primary-accent-hover: #ef4444;
+  --primary-accent-light: rgba(220, 38, 38, 0.2);
+  
+  --secondary-accent: #b91c1c;
+  --secondary-accent-light: rgba(185, 28, 28, 0.2);
+  
+  --text-main: #f8fafc;
+  --text-muted: #cbd5e1;
+  --text-dim: #94a3b8;
+  
+  --status-success: #10b981;
+  --status-success-bg: rgba(16, 185, 129, 0.2);
+  --status-warning: #f59e0b;
+  --status-warning-bg: rgba(245, 158, 11, 0.2);
+  --status-error: #f87171;
+  --status-error-bg: rgba(248, 113, 113, 0.2);
+
+  --glass-bg: rgba(25, 8, 8, 0.85);
+  --glass-border: 1px solid rgba(220, 38, 38, 0.25);
+  --glass-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+}
+
+/* Glass Card Utility */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Button Base Styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-accent), var(--primary-accent-hover));
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(153, 0, 0, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(153, 0, 0, 0.45);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #dc2626;
+}
+
+.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #991b1b;
+  transform: translateY(-2px);
+}
+
+[data-theme="dark"] .btn-danger {
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .btn-danger:hover {
+  color: #ffffff;
+}
+
+.btn-secondary {
+  background: rgba(153, 0, 0, 0.05);
+  border: 1px solid rgba(153, 0, 0, 0.2);
+  color: var(--text-main);
+}
+
+.btn-secondary:hover {
+  background: rgba(153, 0, 0, 0.12);
+  border-color: var(--primary-accent);
+  transform: translateY(-2px);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-live {
+  background: var(--status-success-bg);
+  color: var(--status-success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-live::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--status-success);
+  box-shadow: 0 0 8px var(--status-success);
+  animation: pulse-dot 1.8s infinite;
+}
+
+.badge-demo {
+  background: var(--status-warning-bg);
+  color: var(--status-warning);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.7; }
+}
+
+/* Toast Notifications */
+.toast-container {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  min-width: 300px;
+  max-width: 420px;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  color: var(--text-main);
+  border-left: 4px solid var(--primary-accent);
+  box-shadow: 0 10px 25px rgba(153, 0, 0, 0.15);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+[data-theme="dark"] .toast {
+  background: #1e0a0a;
+  color: #f8fafc;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.toast.success {
+  border-left-color: var(--status-success);
+}
+
+.toast.error {
+  border-left-color: var(--status-error);
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+  to { opacity: 0; transform: translateY(-10px); }
+}

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shree L.R Tiwari College of Engineering — Live Notice Board</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="stylesheet" href="css/common.css" />
+  <style>
+    .portal-body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(153, 0, 0, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(220, 38, 38, 0.08) 0px, transparent 50%);
+    }
+
+    .portal-card {
+      max-width: 840px;
+      width: 100%;
+      padding: 3rem 2.5rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .institution-name {
+      font-family: var(--font-heading);
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--primary-accent);
+      letter-spacing: 0.12em;
+      margin-bottom: 0.3rem;
+    }
+
+    .portal-title {
+      font-size: 2.2rem;
+      color: var(--text-main);
+      line-height: 1.2;
+    }
+
+    .portal-subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 580px;
+      margin-top: 0.5rem;
+    }
+
+    .grid-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      width: 100%;
+    }
+
+    @media (max-width: 640px) {
+      .grid-options {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .option-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 2rem 1.5rem;
+      text-align: left;
+      text-decoration: none;
+      color: var(--text-main);
+      transition: all var(--transition-normal);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+      box-shadow: 0 10px 25px rgba(153, 0, 0, 0.06);
+    }
+
+    .option-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--primary-accent);
+      background: var(--bg-card-hover);
+      box-shadow: 0 15px 35px rgba(153, 0, 0, 0.15);
+    }
+
+    .option-icon {
+      font-size: 2.5rem;
+    }
+
+    .option-h {
+      font-size: 1.3rem;
+      color: var(--text-main);
+    }
+
+    .option-p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body class="portal-body">
+
+  <main class="portal-card glass-panel">
+    <img src="assets/logo.png" alt="Shree L.R Tiwari College Logo" style="width: 110px; height: 110px; object-fit: contain; filter: drop-shadow(0 6px 16px rgba(153, 0, 0, 0.25));" />
+    
+    <div>
+      <div class="institution-name">Shree L.R Tiwari College of Engineering</div>
+      <h1 class="portal-title">Principal's Live Notice Board</h1>
+      <p class="portal-subtitle">
+        Instant real-time announcement system connecting the Principal's device directly to the Smart TV Board outside the cabin.
+      </p>
+    </div>
+
+    <div class="grid-options">
+
+      <!-- Link to Admin Console -->
+      <a href="admin.html" class="option-card">
+        <div>
+          <div class="option-icon">⚙️</div>
+          <h2 class="option-h" style="margin-top: 0.5rem;">Admin Console</h2>
+          <p class="option-p" style="margin-top: 0.5rem;">
+            Post title, text message, and image slideshows. Includes passcode protection, dark mode, and live side-by-side preview.
+          </p>
+        </div>
+        <div style="font-weight: 700; color: var(--primary-accent); font-size: 0.9rem;">
+          Open Admin Panel &rarr;
+        </div>
+      </a>
+
+      <!-- Link to Smart TV Display -->
+      <a href="display.html" class="option-card">
+        <div>
+          <div class="option-icon">📺</div>
+          <h2 class="option-h" style="margin-top: 0.5rem;">Smart TV Display</h2>
+          <p class="option-p" style="margin-top: 0.5rem;">
+            Fullscreen smart board interface with auto image rotation, live clock/date, news ticker, and zero-delay push updates.
+          </p>
+        </div>
+        <div style="font-weight: 700; color: var(--primary-accent); font-size: 0.9rem;">
+          Launch Display Board &rarr;
+        </div>
+      </a>
+
+    </div>
+
+  </main>
+
+</body>
+</html>
