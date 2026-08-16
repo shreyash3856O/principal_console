@@ -8,7 +8,7 @@ import { getShareableDisplayUrl } from './firebase-config.js';
 
 // Application State
 let currentImages = [];
-let customLoopImage = null;
+let customLoopImages = [];
 let isUnlocked = false;
 let draggedIndex = null;
 
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Periodic Loop Settings Setup
+ * Periodic Loop Settings Setup (Supports Multiple Loop Flyers)
  */
 function setupLoopSettings() {
   const enableCheck = document.getElementById('enableLoopCheck');
@@ -38,10 +38,6 @@ function setupLoopSettings() {
 
   const loopDropzone = document.getElementById('loopImageDropzone');
   const loopFileInput = document.getElementById('loopFileInput');
-  const loopPreview = document.getElementById('loopImagePreview');
-  const loopImgThumb = document.getElementById('loopImgThumb');
-  const loopImgName = document.getElementById('loopImgName');
-  const removeLoopBtn = document.getElementById('removeLoopImgBtn');
 
   if (!enableCheck) return;
 
@@ -71,39 +67,64 @@ function setupLoopSettings() {
 
   loopDropzone.addEventListener('drop', (e) => {
     const files = e.dataTransfer.files;
-    if (files.length > 0) handleLoopFile(files[0]);
+    if (files.length > 0) handleLoopFiles(files);
   });
 
   loopFileInput.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) handleLoopFile(e.target.files[0]);
+    if (e.target.files.length > 0) handleLoopFiles(e.target.files);
     loopFileInput.value = '';
   });
 
-  removeLoopBtn.addEventListener('click', () => {
-    customLoopImage = null;
-    loopPreview.style.display = 'none';
-    loopImgThumb.src = '';
-  });
-
-  async function handleLoopFile(file) {
-    if (!file.type.startsWith('image/')) {
-      showToast('Please select a valid image file for the loop flyer.', 'error');
+  async function handleLoopFiles(files) {
+    const validFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (validFiles.length === 0) {
+      showToast('Please select valid image file(s) for loop flyers.', 'error');
       return;
     }
-    try {
-      showToast('Compressing custom loop flyer...', 'info', 1500);
-      const base64 = await compressImage(file, 1280, 0.85);
-      customLoopImage = base64;
-      loopImgThumb.src = base64;
-      loopImgName.textContent = file.name || 'Custom Flyer Attached';
-      loopPreview.style.display = 'flex';
-      showToast('Loop flyer attached!', 'success');
-    } catch (err) {
-      console.error('Loop image processing error:', err);
-      showToast('Failed to process loop image', 'error');
+
+    showToast(`Processing ${validFiles.length} loop flyer(s)...`, 'info', 1500);
+
+    for (const file of validFiles) {
+      try {
+        const base64 = await compressImage(file, 1280, 0.85);
+        customLoopImages.push(base64);
+      } catch (err) {
+        console.error('Loop image processing error:', err);
+        showToast(`Failed to process flyer: ${file.name}`, 'error');
+      }
     }
+
+    renderLoopImagePreviews();
+    showToast(`${customLoopImages.length} Loop Flyer(s) Attached!`, 'success');
   }
 }
+
+function renderLoopImagePreviews() {
+  const grid = document.getElementById('loopImagesGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  customLoopImages.forEach((imgSrc, idx) => {
+    const thumb = document.createElement('div');
+    thumb.className = 'preview-thumb';
+    thumb.style.aspectRatio = '16/10';
+
+    thumb.innerHTML = `
+      <div class="thumb-order-badge">#${idx + 1}</div>
+      <img src="${imgSrc}" alt="Loop Flyer ${idx + 1}" />
+      <button type="button" class="remove-thumb-btn" title="Remove flyer">&times;</button>
+    `;
+
+    thumb.querySelector('.remove-thumb-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      customLoopImages.splice(idx, 1);
+      renderLoopImagePreviews();
+    });
+
+    grid.appendChild(thumb);
+  });
+}
+
 
 
 /**
@@ -266,7 +287,8 @@ function setupFormListeners() {
       interval: loopInterval,
       duration: loopDuration,
       type: loopType,
-      loopImage: customLoopImage
+      loopImages: customLoopImages,
+      loopImage: customLoopImages[0] || null
     };
 
     postBtn.disabled = true;
@@ -299,7 +321,6 @@ function setupFormListeners() {
     }
   });
 
-
   // Clear Board Action
   clearBtn.addEventListener('click', async () => {
     if (!confirm('Are you sure you want to clear the notice board? The display will revert to the empty state.')) {
@@ -314,7 +335,9 @@ function setupFormListeners() {
       titleInput.value = '';
       messageInput.value = '';
       currentImages = [];
+      customLoopImages = [];
       renderImagePreviews();
+      renderLoopImagePreviews();
       updateLivePreviewFromForm();
 
       showToast('Board cleared! TV Display restored to calm empty state.', 'info');
@@ -578,14 +601,12 @@ function setupRealtimePreview() {
           typeSelect.value = boardData.loopConfig.type;
           group.style.display = typeSelect.value === 'image' ? 'block' : 'none';
         }
-        if (boardData.loopConfig.loopImage) {
-          customLoopImage = boardData.loopConfig.loopImage;
-          const preview = document.getElementById('loopImagePreview');
-          const thumb = document.getElementById('loopImgThumb');
-          if (preview && thumb) {
-            thumb.src = customLoopImage;
-            preview.style.display = 'flex';
-          }
+        if (Array.isArray(boardData.loopConfig.loopImages) && boardData.loopConfig.loopImages.length > 0) {
+          customLoopImages = [...boardData.loopConfig.loopImages];
+          renderLoopImagePreviews();
+        } else if (boardData.loopConfig.loopImage) {
+          customLoopImages = [boardData.loopConfig.loopImage];
+          renderLoopImagePreviews();
         }
       }
 

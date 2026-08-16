@@ -352,6 +352,8 @@ function setupInterruptionTimer(title, message, loopConfig) {
   }, intervalMs);
 }
 
+let interruptionFlyerCycleTimer = null;
+
 function triggerInterruption(title, message, loopConfig, durationMs) {
   isInterrupted = true;
 
@@ -367,12 +369,32 @@ function triggerInterruption(title, message, loopConfig, durationMs) {
     slideshowTimeout = null;
   }
 
+  if (interruptionFlyerCycleTimer) {
+    clearInterval(interruptionFlyerCycleTimer);
+    interruptionFlyerCycleTimer = null;
+  }
+
   const overlay = document.getElementById('interruptionOverlay');
   const content = document.getElementById('interruptionContent');
 
   if (overlay && content) {
-    if (loopConfig.type === 'image' && loopConfig.loopImage) {
-      content.innerHTML = `<img src="${loopConfig.loopImage}" alt="Announcement Loop Flyer" />`;
+    const loopImgs = (loopConfig && Array.isArray(loopConfig.loopImages) && loopConfig.loopImages.length > 0)
+      ? loopConfig.loopImages
+      : (loopConfig && loopConfig.loopImage ? [loopConfig.loopImage] : []);
+
+    if (loopConfig.type === 'image' && loopImgs.length > 0) {
+      if (loopImgs.length === 1) {
+        content.innerHTML = `<img src="${loopImgs[0]}" alt="Announcement Loop Flyer" />`;
+      } else {
+        let flyerIdx = 0;
+        const renderFlyer = () => {
+          content.innerHTML = `<img src="${loopImgs[flyerIdx]}" alt="Announcement Loop Flyer ${flyerIdx + 1}" style="max-width: 95%; max-height: 90%; object-fit: contain; animation: fadeInInterruption 0.4s ease;" />`;
+          flyerIdx = (flyerIdx + 1) % loopImgs.length;
+        };
+        renderFlyer();
+        const cycleInterval = Math.max(3000, Math.floor(durationMs / loopImgs.length));
+        interruptionFlyerCycleTimer = setInterval(renderFlyer, cycleInterval);
+      }
     } else {
       content.innerHTML = `
         <div style="max-width: 900px; text-align: center; background: #ffffff; padding: 3rem; border-radius: 16px; border: 4px solid var(--primary-accent); box-shadow: 0 25px 60px rgba(0,0,0,0.5);">
@@ -394,6 +416,10 @@ function triggerInterruption(title, message, loopConfig, durationMs) {
 
 function endInterruption() {
   isInterrupted = false;
+  if (interruptionFlyerCycleTimer) {
+    clearInterval(interruptionFlyerCycleTimer);
+    interruptionFlyerCycleTimer = null;
+  }
 
   const overlay = document.getElementById('interruptionOverlay');
   if (overlay) overlay.style.display = 'none';
@@ -411,10 +437,15 @@ function stopInterruptionTimer() {
     clearTimeout(interruptionResumeTimer);
     interruptionResumeTimer = null;
   }
+  if (interruptionFlyerCycleTimer) {
+    clearInterval(interruptionFlyerCycleTimer);
+    interruptionFlyerCycleTimer = null;
+  }
   isInterrupted = false;
   const overlay = document.getElementById('interruptionOverlay');
   if (overlay) overlay.style.display = 'none';
 }
+
 
 /**
  * Fullscreen Browser API Handler & Glassy Header Toggle

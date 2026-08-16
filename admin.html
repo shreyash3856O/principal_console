@@ -258,9 +258,13 @@
               <label for="loopDurationSelect" class="form-label" style="font-size: 0.75rem;">Show Announcement For</label>
               <select id="loopDurationSelect" class="form-input">
                 <option value="3">3 Seconds</option>
-                <option value="5" selected>5 Seconds</option>
+                <option value="5">5 Seconds</option>
                 <option value="10">10 Seconds</option>
                 <option value="15">15 Seconds</option>
+                <option value="20">20 Seconds</option>
+                <option value="30" selected>30 Seconds</option>
+                <option value="45">45 Seconds</option>
+                <option value="60">1 Minute (60s)</option>
               </select>
             </div>
           </div>
@@ -269,26 +273,24 @@
             <label for="loopContentTypeSelect" class="form-label" style="font-size: 0.75rem;">Loop Interruption Content</label>
             <select id="loopContentTypeSelect" class="form-input">
               <option value="text">Notice Title & Message Card</option>
-              <option value="image">Custom Loop Image / Flyer</option>
+              <option value="image">Custom Loop Image(s) / Flyer(s)</option>
             </select>
           </div>
 
-          <!-- Dedicated Custom Loop Image Dropzone -->
+          <!-- Dedicated Custom Loop Images Dropzone (Supports Multiple Flyers) -->
           <div id="customLoopImageGroup" style="display: none;">
-            <label class="form-label" style="font-size: 0.75rem;">Custom Loop Image / Flyer</label>
+            <label class="form-label" style="font-size: 0.75rem;">Custom Loop Flyers / Images (Supports Multiple)</label>
             <div id="loopImageDropzone" class="dropzone" style="padding: 1rem; border-style: dotted;">
               <div class="dropzone-icon" style="font-size: 1.5rem;">🖼️</div>
-              <div class="dropzone-text" style="font-size: 0.82rem;"><strong>Upload Loop Flyer / Image</strong> (Click or Drag)</div>
-              <input type="file" id="loopFileInput" accept="image/*" style="display: none;" />
+              <div class="dropzone-text" style="font-size: 0.82rem;"><strong>Upload Loop Flyer(s)</strong> (Click or Drag multiple)</div>
+              <div class="dropzone-hint" style="font-size: 0.7rem;">Select 1 or more images to cycle during the video pause window.</div>
+              <input type="file" id="loopFileInput" multiple accept="image/*" style="display: none;" />
             </div>
-            <div id="loopImagePreview" style="margin-top: 0.5rem; display: none; align-items: center; gap: 0.75rem; background: var(--bg-canvas); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-              <img id="loopImgThumb" src="" style="width: 50px; height: 35px; object-fit: cover; border-radius: 4px;" />
-              <span id="loopImgName" style="font-size: 0.8rem; color: var(--text-main); flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">Custom Flyer Attached</span>
-              <button type="button" id="removeLoopImgBtn" class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Remove</button>
-            </div>
+            <div id="loopImagesGrid" class="previews-grid" style="grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 0.5rem; margin-top: 0.5rem;"></div>
           </div>
         </div>
       </div>
+
 
       <!-- Form Actions -->
       <div class="form-actions">
