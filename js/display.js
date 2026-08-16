@@ -12,6 +12,9 @@ let activeImages = [];
 let interruptionIntervalTimer = null;
 let interruptionResumeTimer = null;
 let isInterrupted = false;
+let activeLoopConfig = null;   // retained so endInterruption can restart the interval
+let activeLoopTitle = '';
+let activeLoopMessage = '';
 
 document.addEventListener('DOMContentLoaded', () => {
   initStore();
@@ -341,14 +344,26 @@ function setupInterruptionTimer(title, message, loopConfig) {
   stopInterruptionTimer();
 
   if (!loopConfig || !loopConfig.enabled) {
+    activeLoopConfig = null;
     return;
   }
 
-  const intervalMs = (loopConfig.interval || 30) * 1000;
-  const durationMs = (loopConfig.duration || 5) * 1000;
+  // Store globally so endInterruption can restart the timer
+  activeLoopConfig = loopConfig;
+  activeLoopTitle = title;
+  activeLoopMessage = message;
 
-  interruptionIntervalTimer = setInterval(() => {
-    triggerInterruption(title, message, loopConfig, durationMs);
+  scheduleNextInterruption();
+}
+
+function scheduleNextInterruption() {
+  if (!activeLoopConfig || !activeLoopConfig.enabled) return;
+  // Use a fresh one-shot timeout (not setInterval) so that after each
+  // interruption the full interval elapses before the next one fires.
+  const intervalMs = (activeLoopConfig.interval || 30) * 1000;
+  interruptionIntervalTimer = setTimeout(() => {
+    const durationMs = (activeLoopConfig.duration || 5) * 1000;
+    triggerInterruption(activeLoopTitle, activeLoopMessage, activeLoopConfig, durationMs);
   }, intervalMs);
 }
 
@@ -356,6 +371,13 @@ let interruptionFlyerCycleTimer = null;
 
 function triggerInterruption(title, message, loopConfig, durationMs) {
   isInterrupted = true;
+
+  // Cancel any pending "next interruption" countdown (we'll restart it in endInterruption)
+  if (interruptionIntervalTimer) {
+    clearTimeout(interruptionIntervalTimer);
+    clearInterval(interruptionIntervalTimer);
+    interruptionIntervalTimer = null;
+  }
 
   const container = document.getElementById('slideshowContainer');
   if (container) {
@@ -426,10 +448,16 @@ function endInterruption() {
 
   // Resume slideshow / video playback from exact current slide
   playCurrentSlide();
+
+  // Restart the countdown for the NEXT interruption from this moment
+  // (so the full interval always elapses between interruptions)
+  scheduleNextInterruption();
 }
 
 function stopInterruptionTimer() {
   if (interruptionIntervalTimer) {
+    // Could be a setTimeout or setInterval depending on when it was set
+    clearTimeout(interruptionIntervalTimer);
     clearInterval(interruptionIntervalTimer);
     interruptionIntervalTimer = null;
   }
@@ -441,6 +469,7 @@ function stopInterruptionTimer() {
     clearInterval(interruptionFlyerCycleTimer);
     interruptionFlyerCycleTimer = null;
   }
+  activeLoopConfig = null;
   isInterrupted = false;
   const overlay = document.getElementById('interruptionOverlay');
   if (overlay) overlay.style.display = 'none';
